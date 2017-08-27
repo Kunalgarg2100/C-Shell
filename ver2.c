@@ -1,15 +1,15 @@
 #include <stdio.h> 
 #include <pwd.h> 
 #include <sys/types.h> 
-#include <sys/wait.h> 
 #include <unistd.h> 
 #include <stdlib.h>
 #include <string.h>
-#define TOKEN_BUFFER_SIZE 1111
+#define TOKEN_BUFFER_SIZE 64
 #define TOKEN_DELIM " \t\r\n\a"
 #define CMD_DELIM ";"
-//char home[1111];
-int cd(char **args);
+int cd(char ** args);
+char home[1111];
+
 char *builtin_str[] = {
 	"cd",
 };
@@ -21,37 +21,6 @@ int (*builtin_func[]) (char **) = {
 int num_builtins() {
 	return sizeof(builtin_str) / sizeof(char *);
 }
-int cd(char ** args)
-{
-	printf("cd :- %s",args[1]);
-	int x;
-	char * h = "/home/kunal";
-	if(!args[1]){
-		//printf("%c",*h);
-		x = chdir(h);
-		printf("%d",x);
-		return 1;
-		//prompt();
-	}
-	else if ((strcmp(args[1], "~")==0) || (strcmp(args[1], "~/")==0))
-	{
-		x =  chdir(h);
-		printf("%d",x);
-		return 1;
-	}
-
-
-	x = chdir(args[1]);
-	printf("%d",x);
-	if(x<0)
-	{
-		printf("bash: cd: %s: No such file or directory\n", args[1]);
-		printf("bash: cd: %s: No such file or directory\n", args[1]);
-	}
-
-	return 1;
-}
-
 int lsh_launch(char **args)
 {
 	printf("lsh_launch: %s",args[0]);
@@ -77,7 +46,38 @@ int lsh_launch(char **args)
 
 	return 1;
 }
+int cd(char ** args)
+{
+	printf("cd :- %s",args[1]);
+	int x;
+	char * h = home;
 
+	if(!args[1]){
+		//printf("%c",*h);
+		x = chdir(h);
+		//printf("%d",x);
+		return 1;
+		//prompt();
+	}
+	else if ((strcmp(args[1],"~")==0) || (strcmp(args[1], "~/")==0))
+	{
+		printf("h :- %s\n",h);
+		x =  chdir(h);
+		printf("%d",x);
+		return 1;
+	}
+
+
+	x = chdir(args[1]);
+	printf("%d",x);
+	if(x<0)
+	{
+		printf("bash: cd: %s: No such file or directory\n", args[1]);
+		printf("bash: cd: %s: No such file or directory\n", args[1]);
+	}
+
+	return 1;
+}
 int lsh_execute(char **args)
 {
 	int i;
@@ -119,7 +119,7 @@ char **split_cmd_fxn(char *line)
 		exit(EXIT_FAILURE);
 	}
 
-	token = strtok(line,CMD_DELIM);
+	token = strtok_r(line,CMD_DELIM,&saveptr1);
 	while (token != NULL) 
 	{
 		token_storage[pos] = token;
@@ -135,15 +135,15 @@ char **split_cmd_fxn(char *line)
 			}
 		}
 
-		token = strtok(NULL, CMD_DELIM);
+		token = strtok_r(NULL, CMD_DELIM, &saveptr1);
 	}
 
-/*	token_storage[pos] = NULL;
+	token_storage[pos] = NULL;
 	for (int i = 0; i < pos; ++i)
 	{
 		printf("%s\n", token_storage[i]);
 	}
-*/	return token_storage;
+	return token_storage;
 }
 
 char **split_line_fxn(char *line)
@@ -159,7 +159,7 @@ char **split_line_fxn(char *line)
 		exit(EXIT_FAILURE);
 	}
 
-	token = strtok(line,TOKEN_DELIM);
+	token = strtok_r(line,TOKEN_DELIM,&saveptr1);
 	while (token != NULL) 
 	{
 		token_storage[pos] = token;
@@ -175,17 +175,16 @@ char **split_line_fxn(char *line)
 			}
 		}
 
-		token = strtok(NULL, TOKEN_DELIM);
+		token = strtok_r(NULL, TOKEN_DELIM, &saveptr1);
 	}
 
-/*	token_storage[pos] = NULL;
+	token_storage[pos] = NULL;
 	for (int i = 0; i < pos; ++i)
 	{
 		printf("%s\n", token_storage[i]);
 	}
-*/	return token_storage;
+	return token_storage;
 }
-
 
 void prompt()
 {
@@ -213,8 +212,8 @@ void prompt()
 	name = result->pw_name;
 	printf("<%s@",name);
 
-	char home[1111] = "/home/";
-	strcat(home, name);
+	//char home[1111] = "/home/";
+	//strcat(home, name);
 	//	printf("home : %s\n",home);
 	char hostname[1111];
 	hostname[1110] = '\0';
@@ -249,23 +248,24 @@ void prompt()
 	char **args;
 	char * line=read_line();
 	args = split_cmd_fxn(line);
-	//int status = lsh_execute(args);
-	//	printf("%d",status);
 	while(args[j]){
 		char **args2 = split_line_fxn(args[j]);
 		j++;
 		k = lsh_execute(args2);
 	}
+	
 	prompt();
 	//return;
 }
 
 int main()
 {
-//	getcwd(home,sizeof(home));
+	getcwd(home,sizeof(home));
+	printf("%s\n",home );
 	prompt();
 	return 0;
 }
+
 
 
 

@@ -1,15 +1,13 @@
 #include <stdio.h> 
 #include <pwd.h> 
 #include <sys/types.h> 
-#include <sys/wait.h> 
 #include <unistd.h> 
 #include <stdlib.h>
 #include <string.h>
-#define TOKEN_BUFFER_SIZE 1111
+#define TOKEN_BUFFER_SIZE 64
 #define TOKEN_DELIM " \t\r\n\a"
 #define CMD_DELIM ";"
-//char home[1111];
-int cd(char **args);
+int cd(char ** args);
 char *builtin_str[] = {
 	"cd",
 };
@@ -20,6 +18,31 @@ int (*builtin_func[]) (char **) = {
 
 int num_builtins() {
 	return sizeof(builtin_str) / sizeof(char *);
+}
+int lsh_launch(char **args)
+{
+	printf("lsh_launch: %s",args[0]);
+	pid_t pid, wpid;
+	int status;
+
+	pid = fork();
+	if (pid == 0) {
+		// Child process
+		if (execvp(args[0], args) == -1) {
+			perror("lsh");
+		}
+		exit(EXIT_FAILURE);
+	} else if (pid < 0) {
+		// Error forking
+		perror("lsh");
+	} else {
+		// Parent process
+		do {
+			wpid = waitpid(pid, &status, WUNTRACED);
+		} while (!WIFEXITED(status) && !WIFSIGNALED(status));
+	}
+
+	return 1;
 }
 int cd(char ** args)
 {
@@ -51,33 +74,6 @@ int cd(char ** args)
 
 	return 1;
 }
-
-int lsh_launch(char **args)
-{
-	printf("lsh_launch: %s",args[0]);
-	pid_t pid, wpid;
-	int status;
-
-	pid = fork();
-	if (pid == 0) {
-		// Child process
-		if (execvp(args[0], args) == -1) {
-			perror("lsh");
-		}
-		exit(EXIT_FAILURE);
-	} else if (pid < 0) {
-		// Error forking
-		perror("lsh");
-	} else {
-		// Parent process
-		do {
-			wpid = waitpid(pid, &status, WUNTRACED);
-		} while (!WIFEXITED(status) && !WIFSIGNALED(status));
-	}
-
-	return 1;
-}
-
 int lsh_execute(char **args)
 {
 	int i;
@@ -119,7 +115,7 @@ char **split_cmd_fxn(char *line)
 		exit(EXIT_FAILURE);
 	}
 
-	token = strtok(line,CMD_DELIM);
+	token = strtok_r(line,CMD_DELIM,&saveptr1);
 	while (token != NULL) 
 	{
 		token_storage[pos] = token;
@@ -135,15 +131,15 @@ char **split_cmd_fxn(char *line)
 			}
 		}
 
-		token = strtok(NULL, CMD_DELIM);
+		token = strtok_r(NULL, CMD_DELIM, &saveptr1);
 	}
 
-/*	token_storage[pos] = NULL;
+	token_storage[pos] = NULL;
 	for (int i = 0; i < pos; ++i)
 	{
 		printf("%s\n", token_storage[i]);
 	}
-*/	return token_storage;
+	return token_storage;
 }
 
 char **split_line_fxn(char *line)
@@ -159,7 +155,7 @@ char **split_line_fxn(char *line)
 		exit(EXIT_FAILURE);
 	}
 
-	token = strtok(line,TOKEN_DELIM);
+	token = strtok_r(line,TOKEN_DELIM,&saveptr1);
 	while (token != NULL) 
 	{
 		token_storage[pos] = token;
@@ -175,15 +171,15 @@ char **split_line_fxn(char *line)
 			}
 		}
 
-		token = strtok(NULL, TOKEN_DELIM);
+		token = strtok_r(NULL, TOKEN_DELIM, &saveptr1);
 	}
 
-/*	token_storage[pos] = NULL;
+	token_storage[pos] = NULL;
 	for (int i = 0; i < pos; ++i)
 	{
 		printf("%s\n", token_storage[i]);
 	}
-*/	return token_storage;
+	return token_storage;
 }
 
 
@@ -249,20 +245,18 @@ void prompt()
 	char **args;
 	char * line=read_line();
 	args = split_cmd_fxn(line);
-	//int status = lsh_execute(args);
-	//	printf("%d",status);
 	while(args[j]){
 		char **args2 = split_line_fxn(args[j]);
 		j++;
 		k = lsh_execute(args2);
 	}
+	
 	prompt();
 	//return;
 }
 
 int main()
 {
-//	getcwd(home,sizeof(home));
 	prompt();
 	return 0;
 }

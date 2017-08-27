@@ -1,0 +1,103 @@
+/*
+strtok() actually does is return pointers to within the string you
+ give it, and place \0 bytes at the end of each token.
+  We store each pointer in an array (buffer) of character pointers.
+  The  strtok() function breaks a string into a sequence of zero or more nonempty tokens.  On the first call to strtok() the string to
+       be parsed should be specified in str.  In each subsequent call that should parse the same string, str must be NULL.
+Each  call  to  strtok()  returns a pointer to a null-terminated string containing the next token.  This string does not include the
+       delimiting byte.  If no more tokens are found, strtok() returns NULL.
+A sequence of calls to strtok() that operate on the same string maintains a pointer that determines the point from  which  to  start
+       searching  for the next token.  The first call to strtok() sets this pointer to point to the first byte of the string.  The start of
+       the next token is determined by scanning forward for the next nondelimiter byte in str.  If such a byte is found, it is taken as the
+       start  of  the  next  token.  If no such byte is found, then there are no more tokens, and strtok() returns NULL.  (A string that is
+       empty or that contains only delimiters will thus cause strtok() to return NULL on the first call.)
+the  tokens
+       returned  by  strtok()  are  always nonempty strings. 
+       The saveptr argument is a pointer to a char * variable that is used inter‐
+       nally by strtok_r() in order to maintain context between successive calls that parse the same string.
+
+       On  the  first  call to strtok_r(), str should point to the string to be parsed, and the value of saveptr is ignored.  In subsequent
+       calls, str should be NULL, and saveptr should be unchanged since the previous call.
+
+\a :- alert
+\b :- backspace
+\n :- newline
+\r :- carriage return
+\t :- horizontal - tab
+*/
+// The  malloc()  function allocates size bytes and returns a pointer to the allocated memory.  
+/*
+ On
+       error,  these  functions  return NULL.  NULL may also be returned by a successful call to malloc() with a size of zero,
+          The realloc() function changes the size of the memory block pointed to by ptr to size bytes.  The contents will be unchanged in  the
+       range  from  the  start  of the region up to the minimum of the old and new sizes. 
+       */
+/*
+ The C standard specifies two constants, EXIT_SUCCESS and EXIT_FAILURE, that may be passed to exit() to indicate successful or unsuc‐
+       cessful termination, respectively.
+The exit() function does not return.
+*/
+/*
+ getuid() returns the real user ID of the calling process.
+
+       geteuid() returns the effective user ID of the calling process.
+	Hostname is used to display the system's DNS name, and to display or set its hostname or NIS domain name.
+	gethostname() returns the null-terminated hostname in the character array name, which has a length of len bytes.  If the null-termi‐
+       nated  hostname  is too large to fit, then the name is truncated, and no error is returned (but see NOTES below).  	
+       Hostname is the program that is used to either set or display the current host, domain or node name of the system. T
+       hostname is used to display the system's DNS name, and to display or set its hostname or NIS (Network Information Services) domain name. When called without any arguments, hostname will display the name of the system as returned by the gethostname function.
+
+       The getpwuid() function returns a pointer to a structure containing the broken-out fields of the record  in  the  password  database
+       that matches the user ID uid.
+
+       The passwd structure is defined in <pwd.h> as follows:
+
+           struct passwd {
+               char   *pw_name;       // username 
+               char   *pw_passwd;     // user password 
+               uid_t   pw_uid;        // user ID 
+               gid_t   pw_gid;        // group ID 
+               char   *pw_gecos;      // user information 
+               char   *pw_dir;        // home directory 
+               char   *pw_shell;      // shell program 
+
+           };
+
+       See passwd(5) for more information about these fields.
+
+       The getpwnam_r() and getpwuid_r() functions obtain the same information as getpwnam() and getpwuid(), but store the retrieved passwd
+       structure in the space pointed to by pwd.  The string fields pointed to by the members of the passwd structure  are  stored  in  the
+       buffer  buf  of size buflen.  A pointer to the result (in case of success) or NULL (in case no entry was found or an error occurred)
+       is stored in *result.
+
+       The call
+
+           sysconf(_SC_GETPW_R_SIZE_MAX)
+
+       returns either -1, without changing errno, or an initial suggested size for buf. 
+*/
+/*
+       The getcwd() function copies an absolute pathname of the current working directory to the array pointed  to  by  buf,  which  is  of
+       length size.
+
+       If  the  length  of the absolute pathname of the current working directory, including the terminating null byte, exceeds size bytes,
+       NULL is returned, and errno is set to ERANGE; an application should check for this error, and allocate a larger buffer if necessary.
+*/
+/*
+sizeof operator returns a value of type size_t, it is an unsigned integer type but not a brand new type
+Similarly, the C header files system can use typedef to make size_t a synonym for unsigned int on one system or for unsigned long on another. Thus, when you use the size_t type, the compiler will substitute the standard type that works for your system.
+
+C99 goes a step further and supplies %zd as a printf() specifier for displaying a size_t value. If your system doesn’t implement %zd, try using %u or %lu instead.
+sizeof can only be applied to “completely” defined types. With arrays, this means that the dimensions of the array must be present in its declaration, and that the type of the elements must be completely defined. For structs and unions, this means that there must be a member list of completely defined types.
+size_t is an unsigned integer type of at least 16 bit
+
+This type is used to represent the size of an object. Library functions that take or return sizes expect them to be of type or have the return type of size_t. Further, the most frequently used compiler-based operator sizeof should evaluate to a constant value that is compatible with size_t.
+
+As an implication, size_t is a type guaranteed to hold any array index.
+*/
+/*
+chdir() changes the current working directory of the calling process to the directory specified in path.
+chdir  On success, zero is returned.  On error, -1 is returned, and errno is set appropriately.
+perror prints a description for a system error code or for a storage engine (table handler) error code.
+You can find out what the error code means by examining the documentation for your system or by using the perror utility
+*/
