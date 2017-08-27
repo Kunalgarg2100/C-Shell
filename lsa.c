@@ -1,4 +1,20 @@
 /*Listing the Files in a directory */
+/*
+   struct stat {
+   dev_t     st_dev;       // ID of device containing file 
+ino_t     st_ino;         // inode number 
+mode_t    st_mode;        // protection 
+nlink_t   st_nlink;       // number of hard links 
+uid_t     st_uid;         // user ID of owner 
+gid_t     st_gid;         // group ID of owner 
+dev_t     st_rdev;        // device ID (if special file) 
+off_t     st_size;        // total size, in bytes 
+blksize_t st_blksize;     // blocksize for filesystem I/O 
+blkcnt_t  st_blocks; 
+
+*/
+
+
 
 #include <sys/types.h>
 #include <sys/dir.h>
@@ -21,13 +37,15 @@ const char *get_perms(mode_t mode)
 {
 	char ftype = '?';
 
+	//all these are check types which return 0 when false and 1 when true here mode is the argument recceive as the value of st_mode of stat struct , it contains information about the permissions and type of file
 	if (S_ISREG(mode)) ftype = '-';
 	if (S_ISLNK(mode)) ftype = 'l';
 	if (S_ISDIR(mode)) ftype = 'd';
 	if (S_ISBLK(mode)) ftype = 'b';
 	if (S_ISCHR(mode)) ftype = 'c';
 	if (S_ISFIFO(mode)) ftype = '|';
-
+	// sprintf stores the output into perms_buff instead of printing on console
+	// basicallt mode has bits which on doing and matches a particcular means that it has that permission and therfore would give 1 else 0
 	sprintf(perms_buff, "%c%c%c%c%c%c%c%c%c%c %c%c%c", ftype,
 			mode & S_IRUSR ? 'r' : '-',
 			mode & S_IWUSR ? 'w' : '-',
@@ -83,6 +101,7 @@ int main()
 
 		for (i=0; i<count; ++i)
 		{
+			//stat obtains information of the specified file and writes it to area pointed by &statbuf ;; on success it returns 0 and basically makes a struct for a particular file which contains the members specified at the top of this code
 			if (stat(files[i]->d_name, &statbuf) == 0)
 			{
 				/* Print out type, permissions, and number of links. */
@@ -91,9 +110,10 @@ int main()
 
 				if (!getpwuid_r(statbuf.st_uid, &pwent, buf, sizeof(buf), &pwentp))
 					printf(" %s", pwent.pw_name);
+				// pwname is username
 				else
 					printf(" %d", statbuf.st_uid);
-
+// userid of owner
 				if (!getgrgid_r (statbuf.st_gid, &grp, buf, sizeof(buf), &grpt))
 					printf(" %s", grp.gr_name);
 				else

@@ -24,17 +24,17 @@ int cd(char ** args);
 int pwd(char ** args);
 int echo(char ** args);
 int ls(char ** args);
-int lsl(char ** args);
+int lsa(char ** args);
 
 static char perms_buff[30];
 
 char home[1111];
 
 char *builtin_str[] = {
-	"cd","pwd","echo","ls",
+	"cd","pwd","echo","ls","lsa",
 };
 int (*builtin_func[]) (char **) = {
-	&cd,&pwd,&echo,&ls,
+	&cd,&pwd,&echo,&ls,&lsa
 };
 //builtin_func, that’s OK! I am too. It’s an array of function pointers (that take array of strings and return an int). 
 
@@ -86,6 +86,7 @@ one (const struct dirent *unused)
 	return 1;
 }
 
+
 int file_select(const struct dirent *entry)
 {
 //	printf("\nentered file select\n");
@@ -123,7 +124,7 @@ int lsh_launch(char **args)
 	return 1;
 }
 
-int lsl(char **args)
+int lsa(char **args)
 {
 int count,i;
 	struct direct **files;
@@ -139,10 +140,7 @@ int count,i;
 	if(!getcwd(pathname, sizeof(pathname)))
 		die("Error getting pathnamen");
 
-	if(strcmp(args[1],"-al")==0||strcmp(args[1],"-la")==0)
-		count = scandir(pathname, &files, one, alphasort);
-	else
-		count = scandir(pathname, &files, file_select, alphasort);
+	count = scandir(pathname, &files, one, alphasort);
 
 	if(count > 0)
 	{
@@ -197,22 +195,10 @@ int ls(char ** args)
 {		
 //	printf("\nentered ls\n");
 	
-	if(args[1]&&((strcmp(args[1],"-l")==0)||(strcmp(args[1],"-al")==0)||(strcmp(args[1],"la")==0)))
-	{
-			return lsl(args);
-	}
-	else
-	{
-
 	struct dirent **namelist;
 	
 	int n;
-	
-
-	if(args[1]&&(strcmp(args[1],"-a")==0))
-		n=scandir(".",&namelist,one,alphasort);
-	else	n=scandir(".",&namelist,file_select,alphasort);
-	
+		n=scandir(".",&namelist,file_select,alphasort);
 	if(n<0)
 		perror("scandir");
 	else
@@ -229,8 +215,6 @@ int ls(char ** args)
 	free(namelist);
 	}
 return 1;
-
-	}
 }
 int cd(char ** args)
 {
