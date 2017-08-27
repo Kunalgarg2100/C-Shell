@@ -20,6 +20,14 @@
 #define TOKEN_BUFFER_SIZE 64
 #define TOKEN_DELIM " \t\r\n\a"
 #define CMD_DELIM ";\n"
+
+#define ANSI_COLOR_RED     "\x1b[31m"
+#define ANSI_COLOR_GREEN   "\x1b[32m"
+#define ANSI_COLOR_YELLOW  "\x1b[33m"
+#define ANSI_COLOR_BLUE    "\x1b[34m"
+#define ANSI_COLOR_MAGENTA "\x1b[35m"
+#define ANSI_COLOR_CYAN    "\x1b[36m"
+#define ANSI_COLOR_RESET   "\x1b[0m"
 int cd(char ** args);
 int pwd(char ** args);
 int echo(char ** args);
@@ -30,37 +38,6 @@ static char perms_buff[30];
 
 char home[1111];
 
-char *calender(int m)
-{
-switch(m)
-{
-	
-case 0:
-	return "Jan";
-case 1:
-	return "Feb";
-case 2:
-	return "Mar";
-case 3:
-	return "Apr";
-case 4:
-	return "May";
-case 5:
-	return "Jun";
-case 6:
-	return "Jul";
-case 7:
-	return "Aug";
-case 8:
-	return "Sep";
-case 9:
-	return "Oct";
-case 10:
-	return "Nov";
-case 11:
-	return "Dec";
-}
-}
 char *builtin_str[] = {
 	"cd","pwd","echo","ls","exit_shell",
 };
@@ -74,7 +51,8 @@ int num_builtins() {
 }
 
 
-const char *get_perms(mode_t mode)
+
+int get_perms(mode_t mode)
 {
 	char ftype = '?';
 
@@ -85,23 +63,24 @@ const char *get_perms(mode_t mode)
 	if (S_ISBLK(mode)) ftype = 'b';
 	if (S_ISCHR(mode)) ftype = 'c';
 	if (S_ISFIFO(mode)) ftype = '|';
+	printf("%c",ftype);
 	// sprintf stores the output into perms_buff instead of printing on console
 	// basicallt mode has bits which on doing and matches a particcular means that it has that permission and therfore would give 1 else 0
-	sprintf(perms_buff, "%c%c%c%c%c%c%c%c%c%c %c%c%c", ftype,
-			mode & S_IRUSR ? 'r' : '-',
-			mode & S_IWUSR ? 'w' : '-',
-			mode & S_IXUSR ? 'x' : '-',
-			mode & S_IRGRP ? 'r' : '-',
-			mode & S_IWGRP ? 'w' : '-',
-			mode & S_IXGRP ? 'x' : '-',
-			mode & S_IROTH ? 'r' : '-',
-			mode & S_IWOTH ? 'w' : '-',
-			mode & S_IXOTH ? 'x' : '-',
-			mode & S_ISUID ? 'U' : '-',
-			mode & S_ISGID ? 'G' : '-',
-			mode & S_ISVTX ? 'S' : '-');
+		int cnt = 0;
+		printf( (mode & S_IRUSR) ? "r" : "-");
+        printf( (mode & S_IWUSR) ? "w" : "-");
+        printf( (mode & S_IXUSR) ? "x" : "-");
+        printf( (mode & S_IRGRP) ? "r" : "-");
+        printf( (mode & S_IWGRP) ? "w" : "-");
+        printf( (mode & S_IXGRP) ? "x" : "-");
+        printf( (mode & S_IROTH) ? "r" : "-");
+        printf( (mode & S_IWOTH) ? "w" : "-");
+        printf( (mode & S_IXOTH) ? "x" : "-");
+        if((mode & S_IRUSR) && (mode & S_IWUSR) && (mode & S_IXUSR) && (mode & S_IRGRP) && (mode & S_IWGRP) && (mode & S_IXGRP)
+         && (mode & S_IROTH) && (mode & S_IWOTH) && (mode & S_IWOTH))
+        cnt++;
+    return cnt;
 
-	return (const char *)perms_buff;
 }
 char pathname[MAXPATHLEN];
 
@@ -189,8 +168,8 @@ int count,i;
 			if (stat(files[i]->d_name, &statbuf) == 0)
 			{
 				/* Print out type, permissions, and number of links. */
-				printf("%10.10s", get_perms(statbuf.st_mode));
-				printf(" %d", statbuf.st_nlink);
+				int cnt = get_perms(statbuf.st_mode);
+				printf(" %2d", statbuf.st_nlink);
 
 				if (!getpwuid_r(statbuf.st_uid, &pwent, buf, sizeof(buf), &pwentp))
 					printf(" %s", pwent.pw_name);
@@ -212,7 +191,15 @@ int count,i;
 				
 				strftime(datestring, sizeof(datestring), "%b %d %H:%M ", &time);
 
-				printf(" %s %s\n", datestring, files[i]->d_name);
+				printf(" %s ", datestring);
+				if (S_ISDIR(statbuf.st_mode))
+				printf(ANSI_COLOR_BLUE "%s" ANSI_COLOR_RESET "\n",files[i]->d_name);
+				else if(cnt)
+				printf(ANSI_COLOR_GREEN "%s" ANSI_COLOR_RESET "\n",files[i]->d_name);
+
+				else
+				printf("%s\n",files[i]->d_name);
+
 			}
 
 			free (files[i]);
