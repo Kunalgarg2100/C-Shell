@@ -25,16 +25,47 @@ int pwd(char ** args);
 int echo(char ** args);
 int ls(char ** args);
 int lsl(char ** args);
-
+int exit_shell(char ** args);
 static char perms_buff[30];
 
 char home[1111];
 
+char *calender(int m)
+{
+switch(m)
+{
+	
+case 0:
+	return "Jan";
+case 1:
+	return "Feb";
+case 2:
+	return "Mar";
+case 3:
+	return "Apr";
+case 4:
+	return "May";
+case 5:
+	return "Jun";
+case 6:
+	return "Jul";
+case 7:
+	return "Aug";
+case 8:
+	return "Sep";
+case 9:
+	return "Oct";
+case 10:
+	return "Nov";
+case 11:
+	return "Dec";
+}
+}
 char *builtin_str[] = {
-	"cd","pwd","echo","ls",
+	"cd","pwd","echo","ls","exit_shell",
 };
 int (*builtin_func[]) (char **) = {
-	&cd,&pwd,&echo,&ls,
+	&cd,&pwd,&echo,&ls,&exit_shell,
 };
 //builtin_func, that’s OK! I am too. It’s an array of function pointers (that take array of strings and return an int). 
 
@@ -97,6 +128,10 @@ else
 	return 1;
 
 }
+}
+int exit_shell(char ** args)
+{
+exit(EXIT_FAILURE);
 }
 int lsh_launch(char **args)
 {
@@ -169,11 +204,13 @@ int count,i;
 					printf(" %d", statbuf.st_gid);
 
 				/* Print size of file. */
-				printf(" %5d", (int)statbuf.st_size);
+				printf(" %7d", (int)statbuf.st_size);
 
 				localtime_r(&statbuf.st_mtime, &time);
 				/* Get localized date string. */
-				strftime(datestring, sizeof(datestring), "%F %T", &time);
+				//printf(" %s %d %d:%d %s\n",calender(time.tm_mon),time.tm_mday,time.tm_hour,time.tm_min,files[i]->d_name);
+				
+				strftime(datestring, sizeof(datestring), "%b %d %H:%M ", &time);
 
 				printf(" %s %s\n", datestring, files[i]->d_name);
 			}
@@ -197,7 +234,7 @@ int ls(char ** args)
 {		
 //	printf("\nentered ls\n");
 	
-	if(args[1]&&((strcmp(args[1],"-l")==0)||(strcmp(args[1],"-al")==0)||(strcmp(args[1],"la")==0)))
+	if(args[1]&&((strcmp(args[1],"-l")==0)||(strcmp(args[1],"-al")==0)||(strcmp(args[1],"-la")==0)))
 	{
 			return lsl(args);
 	}
