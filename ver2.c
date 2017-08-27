@@ -6,15 +6,16 @@
 #include <string.h>
 #define TOKEN_BUFFER_SIZE 64
 #define TOKEN_DELIM " \t\r\n\a"
-#define CMD_DELIM ";"
+#define CMD_DELIM ";\n"
 int cd(char ** args);
+int pwd(char ** args);
 char home[1111];
 
 char *builtin_str[] = {
-	"cd",
+	"cd","pwd",
 };
 int (*builtin_func[]) (char **) = {
-	&cd,
+	&cd,&pwd,
 };
 //builtin_func, that’s OK! I am too. It’s an array of function pointers (that take array of strings and return an int). 
 
@@ -43,16 +44,25 @@ int lsh_launch(char **args)
 			wpid = waitpid(pid, &status, WUNTRACED);
 		} while (!WIFEXITED(status) && !WIFSIGNALED(status));
 	}
-
 	return 1;
 }
+int pwd(char ** args)
+{
+	char cwd[1111];
+	getcwd(cwd,sizeof(cwd));
+	printf("\n%s\n",cwd);
+return 1;
+}
+
 int cd(char ** args)
 {
-	printf("cd :- %s",args[1]);
-	int x;
-	char * h = home;
+	int x=0;
+	char  h[1000] ;
+	strcpy(h,home);
+	
 
-	if(!args[1]){
+	if(!args[1])
+	{
 		//printf("%c",*h);
 		x = chdir(h);
 		//printf("%d",x);
@@ -63,12 +73,15 @@ int cd(char ** args)
 	{
 		printf("h :- %s\n",h);
 		x =  chdir(h);
-		printf("%d",x);
+		printf("%d\n",x);
 		return 1;
 	}
 
 
+	//printf("bahar hu main\n");
+	
 	x = chdir(args[1]);
+	
 	printf("%d",x);
 	if(x<0)
 	{
@@ -221,19 +234,31 @@ void prompt()
 	printf("%s:",hostname);
 	char cwd[1111]; //current working directory
 	getcwd(cwd,sizeof(cwd));
-	//	printf("cwd : %s\n",cwd);
-
+	//printf("cwd : %s\n",cwd);
 	int flag=0;
 	int i=0;
-	while(home[i] != '\0')
+	//fflush(stdout);
+	char h[100];
+
+	strcpy(h,home);
+	
+	while(h[i] != '\0')
 	{
-		if(cwd[i] == home[i])
+		//printf("%d",5);
+		if(cwd[i] == h[i])
+		{
 			i++;
+		
+		}
 		else
-			flag=1;
+		{	flag=1;
+		break;
+		}
 	}
 	if(flag)
+	{
 		printf("%s> ",cwd);
+	}
 	else{
 		printf("~");
 		while(cwd[i]!='\0')
@@ -241,8 +266,9 @@ void prompt()
 			printf("%c",cwd[i]);
 			i++;
 		}
-		printf("> ");
+			printf("> ");
 	}
+//	fflush(stdout);
 	int j=0;
 	int k=0;
 	char **args;
@@ -261,7 +287,6 @@ void prompt()
 int main()
 {
 	getcwd(home,sizeof(home));
-	printf("%s\n",home );
 	prompt();
 	return 0;
 }
