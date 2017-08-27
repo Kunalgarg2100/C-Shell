@@ -9,14 +9,13 @@
 #define CMD_DELIM ";\n"
 int cd(char ** args);
 int pwd(char ** args);
-int echo(char ** args);
 char home[1111];
 
 char *builtin_str[] = {
-	"cd","pwd","echo"
+	"cd","pwd","ls",
 };
 int (*builtin_func[]) (char **) = {
-	&cd,&pwd,&echo
+	&cd,&pwd,
 };
 //builtin_func, that’s OK! I am too. It’s an array of function pointers (that take array of strings and return an int). 
 
@@ -92,19 +91,6 @@ int cd(char ** args)
 
 	return 1;
 }
-
-int echo(char **args)
-{
-	int i=1;
-	while(args[i]!=NULL){
-		printf("%s ",args[i]);
-		i++;
-	}
-	printf("\n");
-	return 1;
-}
-
-
 int lsh_execute(char **args)
 {
 	int i;
@@ -116,8 +102,8 @@ int lsh_execute(char **args)
 
 	for (i = 0; i < num_builtins(); i++) {
 		if (strcmp(args[0], builtin_str[i]) == 0) {
-	//		printf("lsh_execute: %s\n",args[0]);
-	//		printf("lsh_execute: %s\n",args[1]);
+			printf("lsh_execute: %s\n",args[0]);
+			printf("lsh_execute: %s\n",args[1]);
 			return (*builtin_func[i])(args);
 		}
 	}
@@ -166,11 +152,11 @@ char **split_cmd_fxn(char *line)
 	}
 
 	token_storage[pos] = NULL;
-/*	for (int i = 0; i < pos; ++i)
+	for (int i = 0; i < pos; ++i)
 	{
 		printf("%s\n", token_storage[i]);
 	}
-*/	return token_storage;
+	return token_storage;
 }
 
 char **split_line_fxn(char *line)
@@ -206,11 +192,11 @@ char **split_line_fxn(char *line)
 	}
 
 	token_storage[pos] = NULL;
-/*	for (int i = 0; i < pos; ++i)
+	for (int i = 0; i < pos; ++i)
 	{
 		printf("%s\n", token_storage[i]);
 	}
-*/	return token_storage;
+	return token_storage;
 }
 
 void prompt()
