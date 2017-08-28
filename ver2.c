@@ -184,15 +184,18 @@ int lsh_launch(char **args)
 		//printf("Child process\n");
 		// Child process
 		if (execvp(args[0], args) == -1) {
-			perror("lsh");
+		//	perror("lsh");
+		fprintf(stderr,"%s : Command not Found\n",args[0]);
 		}
 		else{
 		if(x == 1)
 			exit(EXIT_SUCCESS);
 	}
-	} else if (pid < 0) {
+	}
+	else if (pid < 0) {
 		// Error forking
-		perror("lsh");
+		fprintf(stderr,"Error forking\n");
+		//perror("lsh");
 	} else {
 		//printf("Parent process\n");
 
@@ -235,7 +238,7 @@ int count,i;
 	if(!getcwd(pathname, sizeof(pathname)))
 		die("Error getting pathnamen");
 
-	if(strcmp(args[1],"-al")==0||strcmp(args[1],"-la")==0)
+	if(strcmp(args[1],"-al")==0||strcmp(args[1],"-la")==0||(args[2]&&((strcmp(args[1],"-l")==0&&strcmp(args[2],"-a")==0)||(strcmp(args[2],"-l")==0&&strcmp(args[1],"-a")==0))))
 		count = scandir(pathname, &files, one, alphasort);
 	else
 		count = scandir(pathname, &files, file_select, alphasort);
@@ -302,24 +305,41 @@ return 1;
 int ls(char ** args)
 {		
 //	printf("\nentered ls\n");
-	
-	if(args[1]&&((strcmp(args[1],"-l")==0)||(strcmp(args[1],"-al")==0)||(strcmp(args[1],"-la")==0)))
-	{
-			return lsl(args);
-	}
-	else
-	{
-
+	// ls -l ls -al ls -la
 	struct dirent **namelist;
-	
-	int n;
-	
-
-	if(args[1]&&(strcmp(args[1],"-a")==0))
-		n=scandir(".",&namelist,one,alphasort);
-	else	n=scandir(".",&namelist,file_select,alphasort);
-	
-	if(n<0)
+	int n,flag=0;
+	if(args[1]&&!args[2])
+	{
+		if(args[1]&&((strcmp(args[1],"-l")==0)||(strcmp(args[1],"-al")==0)||(strcmp(args[1],"-la")==0)))
+			return lsl(args);
+		else if(strcmp(args[1],"-a")==0)
+		{	n=scandir(".",&namelist,one,alphasort);
+		flag=1;
+		}
+		else
+			fprintf(stderr,"ls -%s : Command Not found\n",args[1]);
+	}
+	else if(args[1]&&args[2]&&!args[3])
+	{
+	if((strcmp(args[1],"-l")==0&&strcmp(args[2],"-a")==0)||(strcmp(args[2],"-l")==0&&strcmp(args[1],"-a")==0))
+	{
+		return lsl(args);
+	}	
+	else
+		fprintf(stderr,"ls -%s -%s : Command Not found\n",args[1],args[2]);
+	}
+	else if(!args[1])
+	{n=scandir(".",&namelist,file_select,alphasort);
+	flag=1;
+	}
+		
+	else
+		{
+		fprintf(stderr," Command Not found\n");
+		
+		}
+if(flag){
+		if(n<0)
 		perror("scandir");
 	else
 	{
