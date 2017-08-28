@@ -556,7 +556,8 @@ int pinfo(char ** args)
 	printf("Memory -- ");
 	fflush(stdout);
 	lsh_execute(args2);
-	readlink(cmd3 , exec_path , sizeof(exec_path));
+	int p =readlink(cmd3 , exec_path , sizeof(exec_path));
+	exec_path[p] = '\0';
 	printf("Executable Path -- %s\n", exec_path);
 	return 1;
 
