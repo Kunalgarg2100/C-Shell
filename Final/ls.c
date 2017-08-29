@@ -178,12 +178,37 @@ int ls(char ** args)
 		n=scandir(".",&namelist,file_select,alphasort);
 	flag=1;
 	}
-		
 	else
 		{
-		fprintf(stderr," Command Not found\n");
-		
+			DIR * curr_dir;
+			int flag =0 ;
+			char buf[512];
+			curr_dir = opendir(args[1]);
+
+			struct dirent *myfile;
+			int i=0;
+			if(curr_dir!=NULL)
+			{
+				while((myfile = readdir(curr_dir)) !=NULL)
+			{
+				i++;
+				flag = 1;
+				char *temp = myfile->d_name;
+            	if (temp[0]=='.')
+            		continue;
+            	sprintf(buf, "%s ",myfile->d_name);
+				printf("%s ",buf);
+				if(i%10 == 9)
+					printf("\n");
+
+			}
+			printf("\n");
 		}
+			else
+			fprintf(stderr,"ls -%s : Command Not found\n",args[1]);
+		}
+		
+	
 if(flag){
 		if(n<0)
 		perror("scandir");
