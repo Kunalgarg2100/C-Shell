@@ -18,7 +18,7 @@ int lsl(char ** args);
 int exit_shell(char ** args);
 void sigstop(int sig_num);
 void prompt();
-int lsh_execute(char **args);
+int lsh_execute(char **args, int param);
 int lsh_launch(char **args);
 void sigh(int signum);
 char **split_cmd_fxn(char *line);
