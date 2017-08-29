@@ -6,7 +6,6 @@
 #include <unistd.h> 
 #include <stdlib.h>
 #include <string.h>
-#include <signal.h>
 //start lsa.c
 #include <sys/dir.h>
 #include <sys/param.h>
@@ -149,14 +148,21 @@ int ls(char ** args)
 	int n,flag=0;
 	if(args[1]&&!args[2])
 	{
+
 		if(args[1]&&((strcmp(args[1],"-l")==0)||(strcmp(args[1],"-al")==0)||(strcmp(args[1],"-la")==0)))
 			return lsl(args);
 		else if(strcmp(args[1],"-a")==0)
-		{	n=scandir(".",&namelist,one,alphasort);
-		flag=1;
+		{	
+			n=scandir(".",&namelist,one,alphasort);
+			flag=1;
 		}
-		else
-			fprintf(stderr,"ls -%s : Command Not found\n",args[1]);
+		else if(strcmp(args[1],"&")==0)
+		{
+			lsh_launch(args,1);
+		}
+		else 
+			fprintf(stderr,"ls %s : Command Not found\n",args[1]);
+	
 	}
 	else if(args[1]&&args[2]&&!args[3])
 	{
@@ -165,10 +171,11 @@ int ls(char ** args)
 		return lsl(args);
 	}	
 	else
-		fprintf(stderr,"ls -%s -%s : Command Not found\n",args[1],args[2]);
+		fprintf(stderr,"ls %s %s : Command Not found\n",args[1],args[2]);
 	}
 	else if(!args[1])
-	{n=scandir(".",&namelist,file_select,alphasort);
+	{
+		n=scandir(".",&namelist,file_select,alphasort);
 	flag=1;
 	}
 		
