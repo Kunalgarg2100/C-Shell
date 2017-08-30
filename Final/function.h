@@ -16,6 +16,8 @@ int ls(char ** args);
 int pinfo(char ** args);
 int lsl(char ** args);
 int exit_shell(char ** args);
+int exit_shell(char ** args);
+int nightswatch(char ** args);
 void sigstop(int sig_num);
 void prompt();
 int lsh_execute(char **args);
@@ -24,10 +26,15 @@ void sigh(int signum);
 char **split_cmd_fxn(char *line);
 char **split_line_fxn(char *line);
 char *read_line(void);
+void background_fxn();
+void back_process(int x,char * y);
+
+
+void  SIGINT_handler(int sig);
 
 static char perms_buff[30];
 char home[1111];
-
+char previous[1111];
 typedef struct curr_job{
 	int pid;
 	int state;

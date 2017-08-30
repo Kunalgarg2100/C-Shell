@@ -144,9 +144,21 @@ int ls(char ** args)
 {		
 //	printf("\nentered ls\n");
 	// ls -l ls -al ls -la
+	int i=1;
+	while(args[i] !=NULL)
+	{
+		if(args[i][0] == '&')
+			{
+				lsh_launch(args,1);
+				return 1;
+			}
+		i++;
+
+	}
+
 	struct dirent **namelist;
 	int n,flag=0;
-	if(args[1]&&!args[2])
+	if(args[1] && !args[2])
 	{
 
 		if(args[1]&&((strcmp(args[1],"-l")==0)||(strcmp(args[1],"-al")==0)||(strcmp(args[1],"-la")==0)))
@@ -156,12 +168,43 @@ int ls(char ** args)
 			n=scandir(".",&namelist,one,alphasort);
 			flag=1;
 		}
-		else if(strcmp(args[1],"&")==0)
+		//else if(strcmp(args[1],"&")==0)
+		//{
+		//	lsh_launch(args,1);
+		//}
+			else
 		{
-			lsh_launch(args,1);
+			DIR * curr_dir;
+			int flag =0 ;
+			char buf[512];
+
+			curr_dir = opendir(args[1]);
+		//	printf("%s\n",args[1]);
+		//	printf("%s\n",curr_dir);
+
+			struct dirent *myfile;
+			int i=0;
+			if(curr_dir!=NULL)
+			{
+				while((myfile = readdir(curr_dir)) !=NULL)
+			{
+				i++;
+				flag = 1;
+				char *temp = myfile->d_name;
+            	if (temp[0]=='.')
+            		continue;
+            	sprintf(buf, "%s ",myfile->d_name);
+				printf("%s ",buf);
+				//if(i%10 == 9)
+					printf("\n");
+
+			}
 		}
-		else 
-			fprintf(stderr,"ls %s : Command Not found\n",args[1]);
+			else
+			fprintf(stderr,"ls: cannot access %s: No such file or directory\n",args[1]);
+		}
+		//else 
+		//	fprintf(stderr,"lgdfhs %s : Command Not found\n",args[1]);
 	
 	}
 	else if(args[1]&&args[2]&&!args[3])
@@ -178,35 +221,7 @@ int ls(char ** args)
 		n=scandir(".",&namelist,file_select,alphasort);
 	flag=1;
 	}
-	else
-		{
-			DIR * curr_dir;
-			int flag =0 ;
-			char buf[512];
-			curr_dir = opendir(args[1]);
 
-			struct dirent *myfile;
-			int i=0;
-			if(curr_dir!=NULL)
-			{
-				while((myfile = readdir(curr_dir)) !=NULL)
-			{
-				i++;
-				flag = 1;
-				char *temp = myfile->d_name;
-            	if (temp[0]=='.')
-            		continue;
-            	sprintf(buf, "%s ",myfile->d_name);
-				printf("%s ",buf);
-				if(i%10 == 9)
-					printf("\n");
-
-			}
-			printf("\n");
-		}
-			else
-			fprintf(stderr,"ls -%s : Command Not found\n",args[1]);
-		}
 		
 	
 if(flag){
@@ -224,11 +239,10 @@ if(flag){
 			else
 			printf("%s   ",namelist[i]->d_name);
 			free(namelist[i]);
-			if(i%10==9)
+			//if(i%10==9)
 			printf("\n");
 			}
 		}
-	printf("\n");
 	free(namelist);
 	}
 return 1;

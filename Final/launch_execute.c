@@ -22,20 +22,22 @@ int max;
 int sigpid=0;
 
 char *builtin_str[] = {
-	"cd","pwd","echo","ls","exit_shell","pinfo"
+	"cd","pwd","echo","ls","exit_shell","pinfo","nightswatch"
 };
 int (*builtin_func[]) (char **) = {
-	&cd,&pwd,&echo,&ls,&exit_shell,&pinfo
+	&cd,&pwd,&echo,&ls,&exit_shell,&pinfo,&nightswatch
 };
 
-void sigh(int signum)
+
+void background_fxn()
 {
 	pid_t wpid;
 	int status, i;
 	char pidnumber[1000];
-	wpid = waitpid(-1, &status, WNOHANG);
-	if(wpid > 0)
+
+	while((wpid = waitpid(-1, &status, WNOHANG)) > 0)
 	{
+		//printf("wpid: -%d      luluuuu   \n",wpid );
 		if(WIFEXITED(status) == 0)
 		{
 			for(i = 1; i <=max; i++)
@@ -44,7 +46,7 @@ void sigh(int signum)
 				{
 					strcpy(pidnumber, backgrund_process[i].command);
 					backgrund_process[i].state = -1;
-					printf("\n[%d]	Done\t\t\t%s\n",backgrund_process[i].jobid, pidnumber);
+					printf("[%d]	Done\t\t\t%s\n",backgrund_process[i].jobid, pidnumber);
 				}
 			}
 			prompt();
@@ -57,15 +59,29 @@ void sigh(int signum)
 				{
 					strcpy(pidnumber, backgrund_process[i].command);
 					backgrund_process[i].state = -1;
-					printf("\n[%d]	Done\t\t\t%s\n",backgrund_process[i].jobid, pidnumber);
+					printf("[%d]	Done\t\t\t%s\n",backgrund_process[i].jobid, pidnumber);
 				}
 			}
 			prompt();
 			
 		}
 	}
+	return;
+
 }
-int lsh_launch(char **args)
+
+
+void back_process(int pid,char * str){
+						backgrund_process[++max].pid = pid;
+						backgrund_process[max].state = 1;
+						backgrund_process[max].command = str;
+						backgrund_process[max].jobid = max;
+						printf("The process %s with pid %d has started in the background\n",str,pid);
+						printf("[%d] %d\n",backgrund_process[max].jobid,pid);
+						return;
+
+}
+int lsh_launch(char **args,int lsback)
 {
 	//printf("lsh_launch: %s",args[0]);
 	pid_t pid, wpid;
@@ -75,7 +91,7 @@ int lsh_launch(char **args)
 	while(args[i]!=NULL)
 	{
 		if(strcmp(args[i],"&") == 0)
-		{
+		{	
 			args[i] = NULL;
 			x = 1;
 			break;
@@ -89,9 +105,9 @@ int lsh_launch(char **args)
 	if (pid == 0) {
 		//printf("Child process\n");
 		// Child process
-		if (execvp(args[0], args) == -1) {
+		if (execvp(args[0], args) == -1 && lsback==0) {
 		//	perror("lsh");
-		fprintf(stderr,"%s : Command not Found\n",args[0]);
+	//	fprintf(stderr,"%s : Command not Found\n",args[0]);
 		}
 		else{
 		if(x == 1)
@@ -102,18 +118,16 @@ int lsh_launch(char **args)
 		// Error forking
 		fprintf(stderr,"Error forking\n");
 		//perror("lsh");
-	} else {
+	} 
+	else {
 		//printf("Parent process\n");
 
 		if(x == 1){
-						backgrund_process[++max].pid = pid;
-						backgrund_process[max].state = 1;
-						backgrund_process[max].command = args[0];
-						backgrund_process[max].jobid = max;
-						printf("[%d] %d\n",backgrund_process[max].jobid,pid);
-						signal(SIGCHLD,sigh);
-						prompt();
+			back_process(pid,args[0]);
+									//			signal(SIGCHLD,sigh);
+						//prompt();
 	}
+
 	else{
 		sigpid = pid;
 		do {
@@ -121,6 +135,8 @@ int lsh_launch(char **args)
 		} while (!WIFEXITED(status) && !WIFSIGNALED(status));
 		// Parent process
 	}
+
+	background_fxn();
 	sigpid = 0;
 
 	}
@@ -147,5 +163,5 @@ int lsh_execute(char **args)
 		}
 	}
 
-	return lsh_launch(args);
+	return lsh_launch(args,0);
 }

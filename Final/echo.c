@@ -6,7 +6,14 @@
 int echo(char **args)
 {
 	int i=1;
-	if(args[i][0] == '\"' || args[i][0] == '\'')
+	if(args[1] == NULL)
+	{
+		printf("\n");
+		background_fxn();
+		return 1;
+	}
+	
+	if(args[i][0] == '\"' || args[i][0] == '\'')  //If first element is 
 	{
 		int x = strlen(args[i]);
 
@@ -25,10 +32,12 @@ int echo(char **args)
 		{
 			int x = strlen(args[i]);
 			if(args[i][x-1] == '\"' || args[i][x-1] == '\'')
-			for(int j=0;j<x-1;j++)
+			{
+				for(int j=0;j<x-1;j++)
 				printf("%c",args[i][j]);
+		}
 			else
-			printf("%s ",args[i]);
+				printf("%s ",args[i]);
 
 
 			i++;
@@ -38,7 +47,7 @@ int echo(char **args)
 
 	}
 
-
+	//i=1;
 	while(args[i]!=NULL)
 	{
 	if(args[i][0]=='$')
@@ -60,5 +69,6 @@ int echo(char **args)
 		i++;
 	}
 	printf("\n");
+	background_fxn();
 	return 1;
 }

@@ -29,25 +29,21 @@
 ////
 ////
 
-
-
-
-
-
-
-
-
-void prompt()
+void  SIGINT_handler(int sig)
 {
-	/*	printf("prompt");
-		char *name;
-		struct passwd *pass;
-		pass = getpwuid(getuid());
-		name = pass->pw_name;
-		printf("<%s@",name);
-		printf("This is the login name: %s\n", name);
-		*/
-	//check_process();
+     signal(sig, SIG_IGN);
+     printf("\n");
+     signal(sig, SIGINT_handler);
+}
+
+void  SIGQUIT_handler(int sig)
+{
+     signal(sig, SIG_IGN);
+     exit(3);
+}
+
+
+void print_prompt(){
 	char * name;
 	//signal(SIGINT,sigintHandler);
 	//signal(SIGTSTP,sigstop);
@@ -110,11 +106,39 @@ void prompt()
 			printf("> ");
 	}
 
+}
+void prompt()
+{
+	/*	printf("prompt");
+		char *name;
+		struct passwd *pass;
+		pass = getpwuid(getuid());
+		name = pass->pw_name;
+		printf("<%s@",name);
+		printf("This is the login name: %s\n", name);
+		*/
+	while(1){
+//		if (signal(SIGINT, SIGINT_handler) == SIG_ERR) {
+  //       printf("SIGINT install error\n");
+	//	exit(1);
+//}
+		
 
-//	fflush(stdout);
+
+
+//						signal(SIGCHLD,sigh);
+		
+
+	//check_process();
+	
+	print_prompt();
+
+			//	fflush(stdout);
 	int j=0;
 	int k=0;
 	char **args;
+
+
 	char * line=read_line();
 	args = split_cmd_fxn(line);
 	while(args[j]){
@@ -122,8 +146,10 @@ void prompt()
 		j++;
 		k = lsh_execute(args2);
 	}
+	background_fxn();
 	
-	prompt();
+	//prompt();
+}
 	//return;
 }
 
@@ -131,7 +157,17 @@ void prompt()
 
 int main()
 {
+	if (signal(SIGINT, SIGINT_handler) == SIG_ERR) {
+          printf("SIGINT install error\n");
+          exit(1);
+     }
+     if (signal(SIGQUIT, SIGQUIT_handler) == SIG_ERR) {
+          printf("SIGQUIT install error\n");
+          exit(2);
+     }
+
 	getcwd(home,sizeof(home));
+	strcpy(previous,home);
 	prompt();
 	return 0;
 }
