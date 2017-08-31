@@ -3,5 +3,5 @@
 
 int exit_shell(char ** args)
 {
-exit(EXIT_FAILURE);
+exit(0);
 }

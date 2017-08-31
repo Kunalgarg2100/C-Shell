@@ -32,7 +32,7 @@
 void  SIGINT_handler(int sig)
 {
      signal(sig, SIG_IGN);
-     printf("\n");
+     printf("\n");	
      signal(sig, SIGINT_handler);
 }
 
@@ -140,6 +140,13 @@ void prompt()
 
 
 	char * line=read_line();
+	if (feof(stdin)) {
+        printf("\n");
+                            fflush(stdout);
+                           fflush(stderr);
+                           exit(0);
+                }
+
 	args = split_cmd_fxn(line);
 	while(args[j]){
 		char **args2 = split_line_fxn(args[j]);
@@ -151,6 +158,15 @@ void prompt()
 	//prompt();
 }
 	//return;
+}
+void ctrlZ(int signo)
+{
+	if(signo == SIGTSTP)
+	{
+		printf("Detected Ctrl+Z\n");
+		print_prompt();
+	}
+
 }
 
 
@@ -165,6 +181,7 @@ int main()
           printf("SIGQUIT install error\n");
           exit(2);
      }
+     signal(SIGTSTP, ctrlZ);
 
 	getcwd(home,sizeof(home));
 	strcpy(previous,home);

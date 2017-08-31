@@ -16,7 +16,6 @@ int ls(char ** args);
 int pinfo(char ** args);
 int lsl(char ** args);
 int exit_shell(char ** args);
-int exit_shell(char ** args);
 int nightswatch(char ** args);
 void sigstop(int sig_num);
 void prompt();
