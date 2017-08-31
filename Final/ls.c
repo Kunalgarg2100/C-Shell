@@ -100,7 +100,7 @@ int count,i;
 			{
 				/* Print out type, permissions, and number of links. */
 				int cnt = get_perms(statbuf.st_mode);
-				printf(" %2d", statbuf.st_nlink);
+				printf(" %2luljds", statbuf.st_nlink);
 
 				if (!getpwuid_r(statbuf.st_uid, &pwent, buf, sizeof(buf), &pwentp))
 					printf(" %s", pwent.pw_name);
@@ -142,20 +142,6 @@ int count,i;
 }
 int ls(char ** args)
 {		
-//	printf("\nentered ls\n");
-	// ls -l ls -al ls -la
-	int i=1;
-	while(args[i] !=NULL)
-	{
-		if(args[i][0] == '&')
-			{
-				lsh_launch(args,1);
-				return 1;
-			}
-		i++;
-
-	}
-
 	struct dirent **namelist;
 	int n,flag=0;
 	if(args[1] && !args[2])

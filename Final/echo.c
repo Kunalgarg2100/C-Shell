@@ -69,6 +69,5 @@ int echo(char **args)
 		i++;
 	}
 	printf("\n");
-	background_fxn();
 	return 1;
 }

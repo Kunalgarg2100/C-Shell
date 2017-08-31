@@ -10,6 +10,8 @@
 //start lsa.c
 #include <sys/dir.h>
 #include <sys/param.h>
+#include <sys/wait.h>
+
 #include <sys/stat.h>
 #include <grp.h>
 #include <time.h>
@@ -19,7 +21,6 @@
 
 #include "function.h"
 int max;
-int sigpid=0;
 
 char *builtin_str[] = {
 	"cd","pwd","echo","ls","exit_shell","pinfo","nightswatch"
@@ -28,7 +29,9 @@ int (*builtin_func[]) (char **) = {
 	&cd,&pwd,&echo,&ls,&exit_shell,&pinfo,&nightswatch
 };
 
-
+int num_builtins() {
+	return sizeof(builtin_str) / sizeof(char *);
+}
 void background_fxn()
 {
 	pid_t wpid;
@@ -70,6 +73,61 @@ void background_fxn()
 
 }
 
+void child_process(char **args)
+{
+	pid_t pid, wpid;
+	int status;
+	int i=0;
+	int x=0;
+	while(args[i]!=NULL)
+	{
+		if(strcmp(args[i],"&") == 0)
+		{	
+			args[i] = NULL;
+			x = 1;
+			break;
+		}
+		i++;
+	}
+	//printf("x : %d\n",x );
+
+
+	pid = fork();
+	if (pid == 0) {
+
+	for (i = 0; i < num_builtins(); i++) {
+		if (strcmp(args[0], builtin_str[i]) == 0) {
+			(*builtin_func[i])(args);
+		}
+	}
+		if(x == 1)
+			exit(EXIT_SUCCESS);
+	}
+
+
+	else if (pid < 0) {
+		fprintf(stderr,"Error forking\n");
+	} 
+
+	else {
+		//printf("Parent process\n");
+		if(x == 1){
+			back_process(pid,args[0]);
+	}
+
+	else{
+		do {
+			wpid = waitpid(pid, &status, WUNTRACED);
+		} while (!WIFEXITED(status) && !WIFSIGNALED(status));
+		// Parent process
+	}
+
+	background_fxn();
+
+	}
+}
+
+
 
 void back_process(int pid,char * str){
 						backgrund_process[++max].pid = pid;
@@ -81,7 +139,7 @@ void back_process(int pid,char * str){
 						return;
 
 }
-int lsh_launch(char **args,int lsback)
+int lsh_launch(char **args)
 {
 	//printf("lsh_launch: %s",args[0]);
 	pid_t pid, wpid;
@@ -105,7 +163,7 @@ int lsh_launch(char **args,int lsback)
 	if (pid == 0) {
 		//printf("Child process\n");
 		// Child process
-		if (execvp(args[0], args) == -1 && lsback==0) {
+		if (execvp(args[0], args) == -1) {
 		//	perror("lsh");
 	//	fprintf(stderr,"%s : Command not Found\n",args[0]);
 		}
@@ -129,7 +187,6 @@ int lsh_launch(char **args,int lsback)
 	}
 
 	else{
-		sigpid = pid;
 		do {
 			wpid = waitpid(pid, &status, WUNTRACED);
 		} while (!WIFEXITED(status) && !WIFSIGNALED(status));
@@ -137,14 +194,11 @@ int lsh_launch(char **args,int lsback)
 	}
 
 	background_fxn();
-	sigpid = 0;
 
 	}
 	return 1;
 }
-int num_builtins() {
-	return sizeof(builtin_str) / sizeof(char *);
-}
+
 
 int lsh_execute(char **args)
 {
@@ -157,11 +211,10 @@ int lsh_execute(char **args)
 
 	for (i = 0; i < num_builtins(); i++) {
 		if (strcmp(args[0], builtin_str[i]) == 0) {
-		//	printf("lsh_execute: %s\n",args[0]);
-		//	printf("lsh_execute: %s\n",args[1]);
-			return (*builtin_func[i])(args);
+			child_process(args);
+			return 1;
 		}
 	}
 
-	return lsh_launch(args,0);
+	return lsh_launch(args);
 }

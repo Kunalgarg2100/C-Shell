@@ -34,7 +34,6 @@ int cd(char ** args)
 	{
 		printf("bash: cd: %s: No such file or directory\n", args[1]);
 	}
-	background_fxn();
 	
 	return 1;
 }

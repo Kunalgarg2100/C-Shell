@@ -164,7 +164,7 @@ void ctrlZ(int signo)
 	if(signo == SIGTSTP)
 	{
 		printf("Detected Ctrl+Z\n");
-		print_prompt();
+		//print_prompt();
 	}
 
 }
