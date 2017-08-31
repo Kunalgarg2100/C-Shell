@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+int exen(int ch,int timer,char **args);
 
 int inp(int timer)
 {
@@ -25,7 +26,11 @@ int inp(int timer)
     /* Don't rely on the value of tv now! */
 
    if (retval == -1)
+   {
         perror("select()");
+        endwin();
+        return 0;
+   }
     else if (retval)
     {
     	//printf("\n lololo\n");
@@ -99,7 +104,7 @@ int exen(int ch,int timer,char **args)
 				printw("Every %d.0s: %s\n\n\n", atoi(args[2]),args[ch]);
 				refresh();	
 			}
-			var = 1;
+			var=1;
 			while(fgets(str, 10000, fp))
 			{
 				if(strstr(str, "Dirty")){
@@ -117,6 +122,7 @@ int exen(int ch,int timer,char **args)
 				}
 			}
 		}
+	}
 
 		else if(strcmp(args[ch],"interrupt") == 0)
 		{
@@ -177,8 +183,8 @@ int exen(int ch,int timer,char **args)
 
 }
 
-int nightswatch(char **args)
-{
+
+int nightswatch(char **args){
 	int i=0;
 	erase();
 	  initscr();
