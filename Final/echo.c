@@ -5,26 +5,23 @@
 
 int echo(char **args)
 {
-	int i=1;
 	if(args[1] == NULL)
 	{
 		printf("\n");
-		background_fxn();
 		return 1;
 	}
-	
-	if(args[i][0] == '\"' || args[i][0] == '\'')  //If first element is 
+	int i=1;
+	/* This part takes care if the argument starts with " or '*/
+	if(args[i][0] == '\"' || args[i][0] == '\'')  // If argument starts with " or '
 	{
-		int x = strlen(args[i]);
-
-		
+		int x = strlen(args[i]); 
 		if(args[i][x-1] == '\"' || args[i][x-1] == '\'')
 			for(int j=1;j<x-1;j++)
-				printf("%c",args[i][j]);
+				printf("%c",args[i][j]); // If the argument ends with " or '
 		else
 			for(int j=1;j<x;j++)
-			printf("%c",args[i][j]);
-		printf(" ");
+				printf("%c",args[i][j]);
+		printf(" "); // space 
 
 		i++;
 
@@ -32,41 +29,30 @@ int echo(char **args)
 		{
 			int x = strlen(args[i]);
 			if(args[i][x-1] == '\"' || args[i][x-1] == '\'')
-			{
 				for(int j=0;j<x-1;j++)
-				printf("%c",args[i][j]);
-		}
+					printf("%c",args[i][j]);
 			else
 				printf("%s ",args[i]);
-
-
 			i++;
-
 		}
-		
-
 	}
-
-	//i=1;
-	while(args[i]!=NULL)
-	{
-	if(args[i][0]=='$')
-	{
-		const char* str=getenv(args[i]+1);
-		if(str != NULL)
-			printf("%s",str);
-		else
-			printf(" ");
 	
-	}
-
-
-
-	else{
-
-		printf("%s ",args[i]);
-	}
-		i++;
+	else
+	{
+		while(args[i]!=NULL)
+		{
+			if(args[i][0]=='$') // If argument starts with '$' then we print its value from the environment
+			{
+				const char* str=getenv(args[i]+1);
+				if(str != NULL)
+					printf("%s",str);
+				else
+					printf(" ");
+			}
+			else // If argument doesn't start with '$' then it is printed as it is
+				printf("%s ",args[i]);
+			i++;
+		}
 	}
 	printf("\n");
 	return 1;

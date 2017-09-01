@@ -105,6 +105,7 @@ int exen(int ch,int timer,char **args)
 				refresh();	
 			}
 			var=1;
+		}
 			while(fgets(str, 10000, fp))
 			{
 				if(strstr(str, "Dirty")){
@@ -121,7 +122,7 @@ int exen(int ch,int timer,char **args)
 					}
 				}
 			}
-		}
+		
 	}
 
 		else if(strcmp(args[ch],"interrupt") == 0)
@@ -211,6 +212,5 @@ int nightswatch(char **args){
 	{
 		printf("Incorrect command\n");
 	}
-
-		return 0;
+	exit(0);
 }

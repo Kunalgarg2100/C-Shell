@@ -138,6 +138,7 @@ int count,i;
 
 		free(files);
 	}
+	return 1;
 
 }
 int ls(char ** args)
@@ -154,10 +155,6 @@ int ls(char ** args)
 			n=scandir(".",&namelist,one,alphasort);
 			flag=1;
 		}
-		//else if(strcmp(args[1],"&")==0)
-		//{
-		//	lsh_launch(args,1);
-		//}
 			else
 		{
 			DIR * curr_dir;

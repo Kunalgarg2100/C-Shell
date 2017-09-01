@@ -1,6 +1,4 @@
 #include <stdio.h> 
-//start lsa.c
-
 #include "function.h"
 
 char *read_line(void)
