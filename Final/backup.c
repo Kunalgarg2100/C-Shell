@@ -17,6 +17,21 @@
 #include <stdint.h>
 
 #include "function.h"
+/*
+
+getuid() returns the real user ID of the calling process.
+
+int getpwuid_r(uid_t uid, struct passwd *pwd, char *buf, size_t buflen, struct passwd **result);
+The getpwuid_r() function stores the retrieved passwd structure containing the broken-out fields of the record 
+in the password database that matches the user ID uid in the space pointed to by pwd. 
+The string fields pointed to by the members of the passwd structure  are  stored  in  the
+buffer  buf  of size buflen.  A pointer to the result (in case of success) or NULL is stored in *result.
+On success, getpwuid_r() return zero, and set *result to pwd.
+The call sysconf(_SC_GETPW_R_SIZE_MAX) returns either -1 or an initial suggested size for buf.
+
+gethostname() returns the null-terminated hostname in the character array name, which has a length of len bytes.
+Hostname is used to display the system's DNS name, and to display or set its hostname or NIS domain name.
+*/
 
 int print_prompt(){
 	char * name;
@@ -111,6 +126,8 @@ int main()
 		printf("SIGINT install error\n");
 		exit(1);
 	}
+
+	//	printf("%d\n",getpid() );
 	signal(SIGTSTP,SIGTSTP_handler);
 	getcwd(home,sizeof(home));
 	strcpy(previous,home);

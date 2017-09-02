@@ -1,7 +1,14 @@
 #define TOKEN_BUFFER_SIZE 64
 #define TOKEN_DELIM " \t\r\n\a"
 #define CMD_DELIM ";\n"
+/* Delimeters:
 
+\a :- alert
+\b :- backspace
+\n :- newline
+\r :- carriage return
+\t :- horizontal - tab
+*/
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
 #define ANSI_COLOR_YELLOW  "\x1b[33m"

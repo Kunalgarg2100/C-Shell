@@ -134,8 +134,12 @@ void child_process(char **args)
 		}
 		i++;
 	}
-
-	if(strcmp(args[0],"cd")== 0)
+/*
+ We didn't use fork() here as, purpose of fork() is to create a new process.
+ Changing the current directory of the new process won't ever"be inherited back" to its parent.
+In pinfo we need the process id of the parent so we don't fork it
+*/
+	if(strcmp(args[0],"cd")== 0 || strcmp(args[0],"pinfo")== 0)
 	{
 		for (i = 0; i < num_builtins(); i++) {
 			if (strcmp(args[0], builtin_str[i]) == 0) {

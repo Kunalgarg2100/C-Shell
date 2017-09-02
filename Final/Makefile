@@ -33,5 +33,5 @@ split.o: split.c
 nightswatch.o: nightswatch.c
 	gcc -c nightswatch.c
 
-clean: os.o cd.o pwd.o readline.o launch_execute.o execute.o ls.o pinfo.o  echo.o exit_shell.o split.o nightswatch.o
+clean: cd.o pwd.o readline.o launch_execute.o ls.o pinfo.o  echo.o split.o nightswatch.o
 	rm *.o
