@@ -15,12 +15,23 @@ int inp(int timer)
 	char buff[100]={0};
 
 	/* Watch stdin (fd 0) to see when it has input. */
-	FD_ZERO(&rfds);
-	FD_SET(0, &rfds);
+	FD_ZERO(&rfds); // clears a set
+	FD_SET(0, &rfds); // adds a given file descriptor from a given set
 
-	/* Wait up to five seconds. */
+	/* Wait up to timer seconds. */
 	tv.tv_sec = timer;
 	tv.tv_usec = 0;
+
+/*
+int select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds ,  struct timeval *timeout);
+
+select() allows a program to monitor multiple file descriptors, waiting until one or more of the file descriptors 
+become "ready" for some class of I/O operation (e.g., input possible)
+The file descriptors listed in readfds will be watched to see if characters become available for reading
+: in writefds will be watched if space is available for write 
+: in exceptfds will be watched for exceptional conditions
+: The timeout argument specifies the interval that select() should block waiting for a file descriptor to become ready
+*/
 
 	retval = select(1, &rfds, NULL, NULL, &tv);
 	/* Don't rely on the value of tv now! */
@@ -33,33 +44,22 @@ int inp(int timer)
 	}
 	else if (retval)
 	{
-		//printf("\n lololo\n");
-		//initscr();
-		//timeout(-1);
 		char inpu=getch();
-		//endwin();
-		// printf("inpu = %c\n",inpu );
-
-		//scanf("%c",&inpu);
-		//fgets(buff,3, stdin);
-
-		/* Remove trailing newline character from the input buffer if needed. */
 		if(inpu=='q')
 		{
+			/*
+			   A program should always call endwin before exiting or escaping from curses mode temporarily.
+			   This routine restores tty modes, moves the cursor to the lower left-hand corner of the screen
+			   and resets the terminal into the proper non-visual mode. 
+			   The delscreen routine frees storage associated with the SCREEN data structure. The endwin routine does not do this, 
+			   so delscreen should be called after endwin if a particular SCREEN is no longer needed. 
+			   */
 			endwin();
 			return 0;
 		}
-		//len = strlen(buff) - 1;
-		//if (buff[len] == '\n')
-		//  buff[len] = '\0';
 
-		//printf("'%s' was read from stdin.\n", buff);
-		//printf("Data is available now.\n");
-		/* FD_ISSET(0, &rfds) will be true. */}
-	//else
-	//printf("No data within five seconds.\n");
-	return 1;
-	//   exit(EXIT_SUCCESS);
+		return 1;
+	}
 }
 int var;
 
@@ -70,24 +70,36 @@ int fun(int k,char **args)
 	if( k == 1)
 	{
 		ch = 1;
-		timer=2;
+		timer=2; // If function has 2 arguments 
 	}
 	else
 	{
 		ch = 3;
-		timer=atoi(args[2]);
+		timer=atoi(args[2]); // timer is let to given argument
 	}
 
 	while(1)
 	{
-		exen(ch,timer,args);	
-		int x=inp(timer);
-		//	printf("%d",x);
-		if(x==0)break;
+		exen(ch,timer,args);	// executes the command
+		int x= inp(timer);
+		if(x==0)
+			break;
 
 	}
 	return 1;
 }
+
+/*
+The printw() function writes to an "imaginary" screen. It puts stuff into a buffer and updates some flags and
+does some other internal ncurses bookkeeping. It doesn't actually write anything to your real screen (the console window).
+You can do as much printw() writing as you want to, but the stuff doesn't show up on the real screen until your program does 
+something else to cause the "imaginary" screen buffer contents to go to the real screen.
+One thing that causes the real screen to be updated from the printw() buffer is refresh() 
+characters entered in response to getch() are echoed immediately. They don't go to the "printw() buffer", and your program doesn't need refresh(). 
+there may be programs where you do some printw() stuff and then go off and to something else (not console input). A common mistake is for people to get into the habit of 
+not using refresh()
+*/
+
 int exen(int ch,int timer,char **args)	
 {	
 	FILE *fp;
@@ -96,7 +108,8 @@ int exen(int ch,int timer,char **args)
 	{
 		fp = fopen("/proc/meminfo", "r");
 		if(!var){
-			if(ch == 1){
+			if(ch == 1)
+			{
 				printw("Every 2.0s: %s\n\n\n", args[ch]);
 				refresh();
 			}
@@ -149,7 +162,6 @@ int exen(int ch,int timer,char **args)
 		}
 
 
-		//char str[11111];
 		while(fgets(str, 10000, fp))
 		{
 			if(strstr(str, "i8042"))
@@ -159,7 +171,7 @@ int exen(int ch,int timer,char **args)
 				for(j=0;j<x;j++)
 					if((int)str[j] > 47 && (int)str[j] < 57) //checks first digit
 						break;
-				if(str[j] == '1' && str[j+1] == ':')
+				if(str[j] == '1' && str[j+1] == ':') //1:
 				{
 					int k;
 					for(k=j+2;k<x;k++)
@@ -190,47 +202,61 @@ int exen(int ch,int timer,char **args)
 }
 
 
-int nightswatch(char **args){
+int nightswatch(char **args)
+{
 	int i=0;
 	var=0;
+
+	/* Calculating the no of arguments*/
 	while(args[i] !=NULL)
-	{
 		i++;
-	}
-	if(i == 2){
+
+	/* If number of arguments are 2 and the second argument should be "dirty" or "interrupt" */
+	if(i == 2)
+	{
 		if((strcmp(args[1],"dirty")!=0) && (strcmp(args[1],"interrupt")!=0))
 		{
 			fprintf(stderr, "Argument not supported\n");
-			exit(0);
+			return 1;
 		}
 	}
-	else if(i == 4){
+
+	/* If number of arguments are 4 and the fourth argument should be "dirty" or "interrupt" */
+	else if(i == 4)
+	{
 		if((strcmp(args[3],"dirty")!=0) && (strcmp(args[3],"interrupt")!=0))
 		{
 			fprintf(stderr, "Argument not supported\n");
 			exit(0);
 		}
+
+		/* 2nd argument should be -n */
 		if(strcmp(args[1],"-n")!=0)
 		{		
-				fprintf(stderr, "nightswatch: %s: invalid option\n",args[1]);
+			fprintf(stderr, "nightswatch: %s: invalid option\n",args[1]);
 			exit(0);
 		}
+	}
 
-	}
 	erase();
+	/* The erase and werase routines copy blanks to every position in the window, clearing the screen.*/
+
 	initscr();
+	/*
+	   initscr is normally the first curses routine to call when initializing a program. initscr also causes the first call
+	   to refresh to clear the screen. If errors occur, initscr writes an appropriate error message to standard error 
+	   and exits; otherwise, a pointer is returned to stdscr. */
+
 	refresh();
+	/*
+	   The refresh and wrefresh routines (or wnoutrefresh and doupdate) must be called to get actual output to the terminal, 
+	   as other routines merely manipulate data structures. */
+
 	if(i == 2)
-	{
 		fun(1,args);
-	}
 	else if(i == 4)
-	{
 		fun(4,args);
-	}
 	else
-	{
 		printf("Incorrect command\n");
-	}
 	exit(0);
 }
