@@ -1,3 +1,6 @@
+// Install the curses library
+sudo apt-get install libncurses5-dev libncursesw5-dev
+
 This is an implementation of a shell with code in C .
 * To compile: make 
 * To run: ./a.out 
