@@ -7,7 +7,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
-//start lsa.c
 #include <sys/dir.h>
 #include <sys/param.h>
 #include <sys/stat.h>
@@ -37,48 +36,40 @@ int print_prompt(){
 	printf(ANSI_COLOR_CYAN "<%s"  ANSI_COLOR_RESET,name);
 	printf(ANSI_COLOR_YELLOW "@"  ANSI_COLOR_RESET);
 
-	//char home[1111] = "/home/";
-	//strcat(home, name);
-	//	printf("home : %s\n",home);
 	char hostname[1111];
 	hostname[1110] = '\0';
 	gethostname(hostname,1110);
 	printf(ANSI_COLOR_CYAN "%s:" ANSI_COLOR_RESET,hostname);
+
 	char cwd[1111]; //current working directory
 	getcwd(cwd,sizeof(cwd));
-	//printf("cwd : %s\n",cwd);
 	int flag=0;
 	int i=0;
-	//fflush(stdout);
 	char h[100];
 
 	strcpy(h,home);
-	
+
 	while(h[i] != '\0')
 	{
-		//printf("%d",5);
 		if(cwd[i] == h[i])
-		{
 			i++;
-		
-		}
 		else
-		{	flag=1;
-		break;
+		{
+			flag=1;
+			break;
 		}
 	}
 	if(flag)
-	{
 		printf(ANSI_COLOR_CYAN "%s> " ANSI_COLOR_RESET,cwd);
-	}
-	else{
+	else
+	{
 		printf(  ANSI_COLOR_CYAN "~"   ANSI_COLOR_RESET);
 		while(cwd[i]!='\0')
 		{
 			printf(ANSI_COLOR_CYAN "%c"  ANSI_COLOR_RESET,cwd[i]);
 			i++;
 		}
-			printf(ANSI_COLOR_CYAN "> "  ANSI_COLOR_RESET);
+		printf(ANSI_COLOR_CYAN "> "  ANSI_COLOR_RESET);
 	}
 	return 1;
 
@@ -87,28 +78,28 @@ void prompt()
 {
 	while(1)
 	{
-		//printf("\nhelps\n");
-	print_prompt();
-	int j=0;
-	int k=0;
-	char **args;
-	char * line=read_line();
-	if (feof(stdin)) {
-        			printf(" lo l o \n");
-                            fflush(stdout);
-                           fflush(stderr);
-                           exit(0);
-                }
+		print_prompt();
 
-	args = split_cmd_fxn(line);
-	while(args[j])
-	{
-		char **args2 = split_line_fxn(args[j]);
-		j++;
-		k = execute_func(args2);
+		int j=0;
+		int k=0;
+		char **args;
+		char * line=read_line();
+		if (feof(stdin)) 
+		{
+			printf("Ctrl+ D\n");
+			fflush(stdout);
+			fflush(stderr);
+			exit(0);
+		}
+
+		args = split_cmd_fxn(line);
+		while(args[j])
+		{
+			char **args2 = split_line_fxn(args[j]);
+			j++;
+			k = execute_func(args2);
+		}
 	}
-	//background_fxn();
-}
 }
 
 
@@ -116,14 +107,11 @@ void prompt()
 int main()
 {
 	if (signal(SIGINT, SIGINT_handler) == SIG_ERR)
-	 {
-          printf("SIGINT install error\n");
-          exit(1);
-     }
-   //  else
-     //	printf("\nsignal called\n");
-
-    signal(SIGTSTP,SIGTSTP_handler);
+	{
+		printf("SIGINT install error\n");
+		exit(1);
+	}
+	signal(SIGTSTP,SIGTSTP_handler);
 	getcwd(home,sizeof(home));
 	strcpy(previous,home);
 	prompt();

@@ -11,7 +11,7 @@ int cd(char ** args)
 	char  h[1000] ;
 	strcpy(h,home);
 	if(!args[1])
-	{
+	{	
 		x = chdir(h);
 		return 1;
 		//prompt();
@@ -31,8 +31,7 @@ int cd(char ** args)
 	strcpy(previous,cwdc);
 	x = chdir(args[1]);
 	if(x<0)
-	{
 		printf("bash: cd: %s: No such file or directory\n", args[1]);
-	}
+	background_fxn();
 	return 1;
 }

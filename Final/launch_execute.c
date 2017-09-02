@@ -10,14 +10,14 @@
 #include <sys/dir.h>
 #include <sys/param.h>
 #include <sys/wait.h>
-
+#include <errno.h>
 #include <sys/stat.h>
 #include <grp.h>
 #include <time.h>
 #include <locale.h>
 #include <langinfo.h>
 #include <stdint.h>
-
+int sigpid;
 #include "function.h"
 // Stores the number of background processes started
 int max;
@@ -36,6 +36,43 @@ int num_builtins() {
 	return sizeof(builtin_str) / sizeof(char *);
 }
 
+void  SIGINT_handler(int signal_num)
+{
+	int k=0;
+	//printf("%d\n",sigpid );
+	if(sigpid){
+		if(kill(sigpid,SIGINT))
+		{			
+			//printf("Error:Can't kill the process %s\n", strerror(errno));
+			//fprintf(stderr,"Error:Can't kill the process");
+			return;
+		}
+		k =1;
+	}
+	if(!k){
+		signal(signal_num, SIG_IGN); // The signal is ignored.
+		printf("\n");
+		print_prompt();
+		//printf("form signal\n");
+		fflush(stdout); // Flushes the output
+		signal(signal_num, SIGINT_handler); //Again it checks for signal
+	}
+}
+
+/* 
+	Signal  After fork() every child process keeps running same loop as parent, creating another child processes
+ 	and that's why you end up having a lot of them. The signal is sent to every child process of the current process.
+	When you're using fork, you create a child process that inherits from the main process the SIGINT handler.
+ 	That's why the message is printed several times. So, we need to exit every child process to avoid this error
+*/
+
+void SIGTSTP_handler(int signal_num)
+{
+	if(signal_num == SIGTSTP)
+		printf("Ctrl+Z pressed\n");
+}
+
+
 
 // Checks if any of the background process has been terminated ? If yes then prints the message
 void background_fxn()
@@ -44,19 +81,19 @@ void background_fxn()
 	int status, i;
 	char pidnumber[1000];
 	/* The waitpid() system call suspends execution of the calling process until a 
-	 child specified by pid argument has changed  state.
-	 -1 meaning wait for any child process.
-	 If status is not NULL, waitpid() store status information in the int to which it points.
-	 This integer can  be  inspected with the  WIFEXITED(status) and WIFSIGNALED (status) macros
-	 WNOANG :- return immediately if no child has exited.
-	 waitpid():  on  success,  returns  the  process  ID  of the child whose state has changed;
-	 if WNOHANG was specified and one or more child specified by pid exist, but have not yet changed state, then 0 is returned.
-	 On error, -1 is returned.*/
+	   child specified by pid argument has changed  state.
+	   -1 meaning wait for any child process.
+	   If status is not NULL, waitpid() store status information in the int to which it points.
+	   This integer can  be  inspected with the  WIFEXITED(status) and WIFSIGNALED (status) macros
+WNOANG :- return immediately if no child has exited.
+waitpid():  on  success,  returns  the  process  ID  of the child whose state has changed;
+if WNOHANG was specified and one or more child specified by pid exist, but have not yet changed state, then 0 is returned.
+On error, -1 is returned.*/
 
 	while((wpid = waitpid(-1, &status, WNOHANG)) > 0) // Checks for the child processes which have changed there status. 
 	{
 		if(WIFEXITED(status) == 0)
-		//returns true if the child terminated normally, that is, by calling exit(3) or _exit(2), or by returning from main().
+			//returns true if the child terminated normally, that is, by calling exit(3) or _exit(2), or by returning from main().
 		{
 			for(i = 1; i <=max; i++)
 			{
@@ -98,42 +135,56 @@ void child_process(char **args)
 		i++;
 	}
 
-	pid = fork(); // Forking the parent process
-	if (pid < 0) 
-		fprintf(stderr,"Error forking\n");
-
-	else if (pid == 0)  // Child process
+	if(strcmp(args[0],"cd")== 0)
 	{
-		// In child process the corresponding implemented command is called
 		for (i = 0; i < num_builtins(); i++) {
 			if (strcmp(args[0], builtin_str[i]) == 0) {
 				(*builtin_func[i])(args);
 				background_fxn();
-				exit(0);
+				return;
+
 			}
 		}
-
-		if(x == 1) // If the process started is a background process then the child process exits
-			exit(EXIT_SUCCESS);
 	}
-	else 
-	{
-		if(x == 1)  // If the new process to be started was a backgorund process , we update the list of background processes
-			back_process(pid,args[0]);
+	else{
 
-		else //If process is a foreground process
-		{ 
-			do {
-				wpid = waitpid(pid, &status, WUNTRACED);
-			} while (!WIFEXITED(status) && !WIFSIGNALED(status));  
-			/*
-			Parent process waits till Child for the child whose process ID is equal to the value of pid terminates
-			WUNTRACED :- WUNTRACED allows your parent to be returned from wait()/waitpid() if a child gets stopped 
-			as well as exiting or being killed.*/ 
+		pid = fork(); // Forking the parent process
+		if (pid < 0) 
+			fprintf(stderr,"Error forking\n");
+
+		else if (pid == 0)  // Child process
+		{
+			// In child process the corresponding implemented command is called
+			for (i = 0; i < num_builtins(); i++) {
+				if (strcmp(args[0], builtin_str[i]) == 0) {
+					(*builtin_func[i])(args);
+					background_fxn();
+					exit(0);
+				}
+			}
+
+			if(x == 1) // If the process started is a background process then the child process exits
+				exit(EXIT_SUCCESS);
 		}
-		background_fxn();
-		
+		else 
+		{
+			if(x == 1)  // If the new process to be started was a backgorund process , we update the list of background processes
+				back_process(pid,args[0]);
 
+			else //If process is a foreground process
+			{ 
+				do {
+					wpid = waitpid(pid, &status, WUNTRACED);
+				} while (!WIFEXITED(status) && !WIFSIGNALED(status));  
+				/*
+				   Parent process waits till Child for the child whose process ID is equal to the value of pid terminates
+				   WUNTRACED :- WUNTRACED allows your parent to be returned from wait()/waitpid() if a child gets stopped 
+				   as well as exiting or being killed.*/ 
+			}
+			background_fxn();
+
+
+		}
 	}
 }
 
@@ -173,25 +224,29 @@ int launch_func(char **args)
 	else if (pid == 0) // Child process
 	{
 		if (execvp(args[0], args) == -1)
-		/*
-			The exec family of functions are ultimately a system call. System calls go straight into the kernel
-			and typically perform a very specific service that only the kernel can do.
-			The  exec() family of functions replaces the current process image with a new process image.
-			 The exec() functions return only if an error has occurred. */
-			
+			/*
+			   The exec family of functions are ultimately a system call. System calls go straight into the kernel
+			   and typically perform a very specific service that only the kernel can do.
+			   The  exec() family of functions replaces the current process image with a new process image.
+			   The exec() functions return only if an error has occurred. */
+
 			fprintf(stderr,"%s : Command not Found\n",args[0]);
 		else 
-			if(x == 1)
-				exit(EXIT_SUCCESS);
+			//if(x == 1)
+			exit(EXIT_SUCCESS);
 	}
 	else // Parent process
 	{
 		if(x == 1)
 			back_process(pid,args[0]);
-		else
+		else{
+			sigpid = pid;
 			do {
 				wpid = waitpid(pid, &status, WUNTRACED);
 			} while (!WIFEXITED(status) && !WIFSIGNALED(status));
+			sigpid = 0;
+
+		}
 		background_fxn();
 	}
 	return 1;
