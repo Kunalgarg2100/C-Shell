@@ -58,8 +58,9 @@ The file descriptors listed in readfds will be watched to see if characters beco
 			return 0;
 		}
 
-		return 1;
 	}
+	
+	return 1;
 }
 int var;
 
@@ -217,7 +218,7 @@ int nightswatch(char **args)
 		if((strcmp(args[1],"dirty")!=0) && (strcmp(args[1],"interrupt")!=0))
 		{
 			fprintf(stderr, "Argument not supported\n");
-			return 1;
+			exit(0);
 		}
 	}
 
