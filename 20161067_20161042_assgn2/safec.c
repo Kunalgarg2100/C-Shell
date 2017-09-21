@@ -122,7 +122,7 @@ On error, -1 is returned.*/
 				if(backgrund_process[i].pid == wpid){
 					printf("[%d]+	Done\t\t\t%s with pid %d\n",backgrund_process[i].jobid,  backgrund_process[i].command , wpid);
 					backgrund_process[i].state = -1;
-
+				
 				}
 			}
 			prompt();
@@ -155,10 +155,10 @@ void child_process(char **args)
 	   */
 
 	/*
-	   setenv(),unsetenv() and putenv() functions should not be forked as l, it won't modify the shell's environment - there's 
-	   no way for a child process to do that.  That's why the shell commands that modify the environment are builtins, and why you need to source 
-	   a script that contains variable settings you want to add to your shell, rather than simply running it.
-	   */
+	setenv(),unsetenv() and putenv() functions should not be forked as l, it won't modify the shell's environment - there's 
+	no way for a child process to do that.  That's why the shell commands that modify the environment are builtins, and why you need to source 
+	a script that contains variable settings you want to add to your shell, rather than simply running it.
+	*/
 	if(strcmp(args[0],"cd")== 0 || strcmp(args[0],"pinfo")== 0 || strcmp(args[0],"set_env")== 0  || strcmp(args[0],"unset_env")== 0 || strcmp(args[0],"fg")== 0)
 	{
 		for (i = 0; i < num_builtins(); i++) {
@@ -293,67 +293,87 @@ int redirect_fxn(char **args)
 			output_redi =1;
 		if(strcmp(args[i],">>") == 0)
 			append_redi=1;
+	//	printf("%d %s\n",i,args[i]);
 		i++;
 	}
-
+	
 	int stdin_copy = dup(0);
 	int stdout_copy = dup(1);
 	close(0);
 	close(1);
+	
+	//printf("%d %d\n",input_redi,output_redi);
 
-	if(output_redi || append_redi)
-	{ //There is output redirection
+	
+	if(input_redi && output_redi || input_redi && append_redi )
+	{
 		int f1;
-		char * cmd1[6];
 		if(output_redi)
 			f1 = open(args[4],O_WRONLY | O_CREAT, 0644);
 		else if(append_redi)
 			f1 = open(args[4],O_WRONLY | O_CREAT | O_APPEND, 0644);
-		dup2(f1,1);	
-		if(input_redi)
-		{
-			if(strcmp(args[0],"sort") == 0){
-				cmd1[0] = "sort";
-				cmd1[1]= args[2];
-				cmd1[2] =NULL;
-			}
-		}
 
-		else
-		{
-			if(strcmp(args[0],"diff") == 0)
-							{	cmd1[0] = "diff";
-				cmd1[1]= args[1];
-				cmd1[2] = args[2];
-				cmd1[3] = NULL;
-			}
-		}
+		dup2(f1,1);
 
-		int pid = fork();
-		pid_t wpid;
-		int status;
-		if(pid == 0)
-			execvp(cmd1[0],cmd1);
-		else
+		if(strcmp(args[0],"sort") == 0)
 		{
-			do {
-				wpid = waitpid(pid, &status, WUNTRACED);
-			} while (!WIFEXITED(status) && !WIFSIGNALED(status));
+			char * cmd1[] = {"sort", args[2], NULL};
+			int pid = fork();
+			pid_t wpid;
+			int status;
+			if(pid == 0)
+				execvp(cmd1[0],cmd1);
+			else
+			{
+				do {
+					wpid = waitpid(pid, &status, WUNTRACED);
+				} while (!WIFEXITED(status) && !WIFSIGNALED(status));
+			}
 		}
 		close(f1);
-		dup2(stdin_copy, 0);
-		dup2(stdout_copy, 1);
-		close(stdin_copy);
-		close(stdout_copy);
+			dup2(stdin_copy, 0);
+	dup2(stdout_copy, 1);
+	close(stdin_copy);
+	close(stdout_copy);
 	}
 
+	else if(output_redi || append_redi)
+	{
+		int f1;
+		if(output_redi)
+			f1 = open(args[4],O_WRONLY | O_CREAT, 0644);
+		else if(append_redi)
+			f1 = open(args[4],O_WRONLY | O_CREAT | O_APPEND, 0644);
+		dup2(f1,1);
+		if(strcmp(args[0],"diff") == 0)
+		{
+			char * cmd1[] = {"diff", args[1], args[2] ,NULL};
+			int pid = fork();
+			pid_t wpid;
+			int status;
+			if(pid == 0)
+				execvp(cmd1[0],cmd1);
+			else
+			{
+				do {
+					wpid = waitpid(pid, &status, WUNTRACED);
+				} while (!WIFEXITED(status) && !WIFSIGNALED(status));
+			}
+		}
+		close(f1);
+			dup2(stdin_copy, 0);
+	dup2(stdout_copy, 1);
+	close(stdin_copy);
+	close(stdout_copy);
+	}
+	
 
 	else if(input_redi)
 	{
 		dup2(stdin_copy, 0);
-		dup2(stdout_copy, 1);
-		close(stdin_copy);
-		close(stdout_copy);
+	dup2(stdout_copy, 1);
+	close(stdin_copy);
+	close(stdout_copy);
 
 		if(strcmp(args[0],"sort") == 0)
 		{
@@ -371,67 +391,36 @@ int redirect_fxn(char **args)
 			}
 		}
 	}
-	return 1;
-}
 
-int pipe_fxn(char **args)
-{
-	int i=0;
-	int k=0;
-	int noofcmd=0;
-	char cmd [1111];
-	while(args[i])
+	else
 	{
-		while(args[i] && strcmp(args[i],"|")!=0)
+		dup2(stdin_copy, 0);
+	dup2(stdout_copy, 1);
+	close(stdin_copy);
+	close(stdout_copy);
+	if(strcmp(args[0],"diff") == 0)
 		{
-			int n = strlen(args[i]);
-			for(int j=0;j<n;j++)
-				cmd[k++] = args[i][j];
-			cmd[k++]=' ';
-			i++;
+			char * cmd1[] = {"diff", args[1],args[2] ,NULL};
+			int pid = fork();
+			int status;
+			pid_t wpid;
+			if(pid == 0)
+				execvp(cmd1[0],cmd1);
+			else
+			{
+				do {
+					wpid = waitpid(pid, &status, WUNTRACED);
+				} while (!WIFEXITED(status) && !WIFSIGNALED(status));
+			}
 		}
-		if(args[i+1])
-			cmd[k++]='|';
 
-		i++;
+		
 	}
-	cmd[k] = '\0';
-	printf("%s\n",cmd);
-	i=0;
-	char ** pipargs = split_pipe_fxn(cmd);
-	char ** args2;
-	if(i>1)
-	while(pipargs[i-1])
-	{
-		printf("%s\n",pipargs[i]);
-		args2 = split_line_fxn(pipargs[i]);
-		int m=0;
-		while(args2[m])
-		{
-			printf("%s\n",args2[m]);
-			m++;
-		}
-		int pd[2];
-        pipe(pd);
+	return 1;
 
-		int pid = fork();
-		if(pid == 0)
-		{
-			dup2(pd[1],1);
-			execlp(args2[0], args2, NULL);
-            perror("exec");
-            abort();
-		}
-		dup2(pd[0], 0);
-        close(pd[1]);
-        i++;
-    }
-	execlp(args2[0], args2, NULL);
-
-    perror("exec");
-    abort();
-    return 1;
 }
+
+
 
 int execute_func(char **args)
 {
@@ -439,25 +428,15 @@ int execute_func(char **args)
 		return 1;
 	int indir = 0;
 	int i=0;
-	int pipedir = 0;
 	while(args[i]!=NULL) //Checking if it is a redirection command
-	{
-		if(strcmp(args[i],"|") == 0)
-			pipedir=1;
-		if((strcmp(args[i],">") == 0) || (strcmp(args[i],"<") == 0) || (strcmp(args[i],">>") == 0) )
-		{
-			indir = 1;
-			break;
+ 		{
+			if((strcmp(args[i],">") == 0) || (strcmp(args[i],"<") == 0) || (strcmp(args[i],">>") == 0) )
+				{
+					indir = 1;
+					break;
+				}
+			i++;
 		}
-		i++;
-	}
-
-	if(pipedir)
-	{
-		pipe_fxn(args);
-		return 1;
-	}
-
 
 	if(indir)
 	{
@@ -465,7 +444,6 @@ int execute_func(char **args)
 		return 1;
 	}
 
-	
 	for (int i = 0; i < num_builtins(); i++) 
 	{
 		if (strcmp(args[0], builtin_str[i]) == 0) 
@@ -575,5 +553,3 @@ int bg(char **args)
 	cmd2 = execute_func(args1);
 	printf("%c\n\n\n",cmd2[0]);
 }
-
-

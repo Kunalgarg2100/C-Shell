@@ -1,5 +1,5 @@
-compile: main.o  pwd.o readline.o launch_execute.o cd.o ls.o pinfo.o  echo.o split.o nightswatch.o 
-	gcc main.o  pwd.o readline.o launch_execute.o cd.o ls.o pinfo.o  echo.o split.o nightswatch.o  -lncurses 
+compile: main.o  pwd.o readline.o launch_execute.o cd.o ls.o pinfo.o  echo.o split.o nightswatch.o setenv.o unsetenv.o
+	gcc main.o  pwd.o readline.o launch_execute.o cd.o ls.o pinfo.o  echo.o split.o nightswatch.o setenv.o unsetenv.o -lncurses 
 
 main.o: main.c
 	gcc -c main.c
@@ -32,6 +32,12 @@ split.o: split.c
 
 nightswatch.o: nightswatch.c
 	gcc -c nightswatch.c
+
+setenv.o: setenv.c
+	gcc -c setenv.c
+
+unsetenv.o: unsetenv.c
+	gcc -c unsetenv.c
 
 clean: cd.o pwd.o readline.o launch_execute.o ls.o pinfo.o  echo.o split.o nightswatch.o
 	rm *.o

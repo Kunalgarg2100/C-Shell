@@ -106,10 +106,15 @@ void prompt()
 			fflush(stderr);
 			exit(0);
 		}
-
+	
+	// Used to separate commands
 		args = split_cmd_fxn(line);
+
 		while(args[j])
 		{
+
+	// Used to separate command arguments
+			
 			char **args2 = split_line_fxn(args[j]);
 			j++;
 			k = execute_func(args2);
