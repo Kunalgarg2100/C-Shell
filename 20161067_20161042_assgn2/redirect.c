@@ -1,7 +1,7 @@
 #include <unistd.h> // fork()
 #include <string.h> //strcmp
 #include <sys/types.h> //open()
-#include <sys/stat.h>
+#include <sys/stat.h>	
 #include <sys/wait.h>
 #include <stdio.h>
 #include <fcntl.h>
@@ -17,11 +17,11 @@ int redirect_fxn(char **args)
 	while(args[i]!=NULL)
 	{
 		if(strcmp(args[i],"<") == 0)
-			input_redi = 1;
+			input_redi = i;
 		if(strcmp(args[i],">") == 0)
-			output_redi =1;
+			output_redi = i;
 		if(strcmp(args[i],">>") == 0)
-			append_redi=1;
+			append_redi= i;
 		i++;
 	}
 
@@ -33,30 +33,40 @@ int redirect_fxn(char **args)
 	if(output_redi || append_redi)
 	{ //There is output redirection
 		int f1;
-		char * cmd1[6];
+		char * cmd1[100];
 		if(output_redi)
-			f1 = open(args[4],O_WRONLY | O_CREAT, 0644);
+			f1 = open(args[output_redi+1],O_WRONLY | O_CREAT | O_TRUNC, 0644);
 		else if(append_redi)
-			f1 = open(args[4],O_WRONLY | O_CREAT | O_APPEND, 0644);
+			f1 = open(args[append_redi+1],O_WRONLY | O_CREAT | O_APPEND, 0644);
+		if(f1 == -1)
+			perror("open error: ");
+		fflush(stdout);
 		dup2(f1,1);	
 		if(input_redi)
 		{
-			if(strcmp(args[0],"sort") == 0){
-				cmd1[0] = "sort";
-				cmd1[1]= args[2];
-				cmd1[2] =NULL;
-			}
+			int wr=0;
+				while(strcmp(args[wr],"<") != 0)
+				{	
+					cmd1[wr] = args[wr];
+					wr++;
+				}
+				cmd1[wr] = args[input_redi+1];
+				cmd1[wr+1] = NULL;
+
 		}
 
 		else
 		{
-			if(strcmp(args[0],"diff") == 0)
-			{	cmd1[0] = "diff";
-				cmd1[1]= args[1];
-				cmd1[2] = args[2];
-				cmd1[3] = NULL;
-			}
+			
+				int wr=0;
+				while(strcmp(args[wr],">") != 0 && strcmp(args[wr],">>") != 0)
+				{	
+					cmd1[wr] = args[wr];
+					wr++;
+				}
+				cmd1[wr] = NULL;
 		}
+
 
 		int pid = fork();
 		pid_t wpid;
@@ -83,10 +93,17 @@ int redirect_fxn(char **args)
 		dup2(stdout_copy, 1);
 		close(stdin_copy);
 		close(stdout_copy);
+		char * cmd1[100];
 
-		if(strcmp(args[0],"sort") == 0)
-		{
-			char * cmd1[] = {"sort", args[2] ,NULL};
+		int wr=0;
+				while(strcmp(args[wr],"<") != 0)
+				{	
+					cmd1[wr] = args[wr];
+					wr++;
+				}
+				cmd1[wr] = args[input_redi+1];
+				cmd1[wr+1]=NULL;
+
 			int pid = fork();
 			int status;
 			pid_t wpid;
@@ -98,7 +115,7 @@ int redirect_fxn(char **args)
 					wpid = waitpid(pid, &status, WUNTRACED);
 				} while (!WIFEXITED(status) && !WIFSIGNALED(status));
 			}
-		}
+
 	}
 	return 1;
 }

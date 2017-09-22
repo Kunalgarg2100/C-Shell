@@ -1,7 +1,8 @@
 #include<stdio.h>
 int main()
 	{
-		int n=5;
+		int n;
+		scanf("%d",&n);
 		while(n--)
 			printf("%d\n",n);
 		return 0;

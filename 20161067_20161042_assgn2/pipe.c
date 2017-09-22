@@ -43,6 +43,7 @@ int pipe_fxn(char **args)
 		while(pipargs[i])
 			i++;
 		noofcmd = i;
+
 		i=0;
 		while(pipargs[i] && i < noofcmd-1)
 		{
@@ -54,7 +55,6 @@ int pipe_fxn(char **args)
 
 			while(args2[g]!=NULL)
 			{
-				printf("%s\n",args2[g]);
 				if(strcmp(args2[g],"<") == 0)
 					input_redi = g;
 				if(strcmp(args2[g],">") == 0)
@@ -64,13 +64,8 @@ int pipe_fxn(char **args)
 				g++;
 			}
 
-			printf("%d\n",input_redi );
-			printf("%d\n",output_redi );
-			printf("%d\n",append_redi );
-
 			if(output_redi || append_redi)
 			{
-				printf("1\n");
 				int in=open(args2[input_redi+1],O_RDONLY);
 				dup2(in,STDIN_FILENO);
 				close(in);				
@@ -78,7 +73,6 @@ int pipe_fxn(char **args)
 			}
 			else
 			{
-				printf("hi\n");
 				int pd[2];
 				pipe(pd);
 				int pid = fork();
@@ -105,7 +99,6 @@ int pipe_fxn(char **args)
 		int g=0;
 		while(args2[i]!=NULL)
 		{
-			printf("%s\n",args2[i]);
 			if(strcmp(args2[i],">") == 0)
 				output_redi = i;
 			if(strcmp(args2[i],">>") == 0)
@@ -113,10 +106,6 @@ int pipe_fxn(char **args)
 			i++;
 		}
 
-
-		printf("%d\n",input_redi );
-		printf("%d\n",output_redi );
-		printf("%d\n",append_redi );
 		if(output_redi || append_redi)
 		{
 			if(output_redi)
@@ -124,9 +113,6 @@ int pipe_fxn(char **args)
 			else
 				g = append_redi;
 
-			printf("helloji\n");
-			printf("%s\n\n",args2[g+1]);
-			//fflush();
 			int f1;
 			if(output_redi)
 				f1 = open(args2[g+1],O_WRONLY | O_CREAT | O_TRUNC, 0644);
@@ -137,12 +123,10 @@ int pipe_fxn(char **args)
 			char * cmd1[6];
 			while(strcmp(args2[wr],">") != 0 && strcmp(args2[wr],">>") != 0)
 			{
-				printf("%s\n",args2[wr]);
 				cmd1[wr] = args2[wr];
 				wr++;
 			}
 			cmd1[wr] = NULL;
-			printf("fgh: %s\n",cmd1[0]);
 
 			close(1);
 			dup2(f1,1);

@@ -299,9 +299,9 @@ int execute_func(char **args)
 
 	if(pipedir)
 	{
-		printf("pipefun\n");
+		//printf("pipefun\n");
 		pipe_fxn(args);
-		printf("pipefun\n");
+		//printf("pipefun\n");
 		return 1;
 	}
 
@@ -309,7 +309,7 @@ int execute_func(char **args)
 	if(indir)
 	{
 		redirect_fxn(args);
-		printf("redirection\n");
+		//printf("redirection\n");
 		return 1;
 	}
 
