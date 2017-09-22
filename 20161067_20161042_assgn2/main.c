@@ -99,7 +99,8 @@ void prompt()
 		int k=0;
 		char **args;
 		char * line=read_line();
-		if (feof(stdin)) 
+		if (feof(stdin)) //The  function  feof() tests the end-of-file indicator for the stream pointed to by stream,
+		// returning nonzero if it is set.
 		{
 			printf("Ctrl+ D\n");
 			fflush(stdout);
@@ -117,7 +118,6 @@ void prompt()
 			char **args2 = split_line_fxn(args[j]);
 			j++;
 			k = execute_func(args2);
-			//printf("%d\n",k);
 		}
 	}
 }
