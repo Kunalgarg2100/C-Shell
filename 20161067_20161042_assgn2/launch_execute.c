@@ -322,7 +322,7 @@ int redirect_fxn(char **args)
 		else
 		{
 			if(strcmp(args[0],"diff") == 0)
-							{	cmd1[0] = "diff";
+			{	cmd1[0] = "diff";
 				cmd1[1]= args[1];
 				cmd1[2] = args[2];
 				cmd1[3] = NULL;
@@ -380,57 +380,62 @@ int pipe_fxn(char **args)
 	int k=0;
 	int noofcmd=0;
 	char cmd [1111];
-	while(args[i])
-	{
-		while(args[i] && strcmp(args[i],"|")!=0)
+	int wpid;
+	int status;
+	int piid;
+	piid = fork();
+	if(piid == 0){
+		while(args[i])
 		{
-			int n = strlen(args[i]);
-			for(int j=0;j<n;j++)
-				cmd[k++] = args[i][j];
-			cmd[k++]=' ';
+			while(args[i] && strcmp(args[i],"|")!=0)
+			{
+				int n = strlen(args[i]);
+				for(int j=0;j<n;j++)
+					cmd[k++] = args[i][j];
+				cmd[k++]=' ';
+				i++;
+			}
+			if(args[i+1])
+				cmd[k++]='|';
+
 			i++;
 		}
-		if(args[i+1])
-			cmd[k++]='|';
+		cmd[k] = '\0';
+		i=0;
+		char ** pipargs = split_pipe_fxn(cmd);
+		char ** args2;
+		while(pipargs[i])
+			i++;
+		noofcmd = i;
+		i=0;
+		while(pipargs[i] && i < noofcmd-1)
+		{
+			args2 = split_line_fxn(pipargs[i]);
+			int pd[2];
+			pipe(pd);
+			int pid = fork();
+			if(pid == 0)
+			{
+				dup2(pd[1],1);
+				execvp(args2[0],args2);
+			}
 
-		i++;
-	}
-	cmd[k] = '\0';
-	printf("%s\n",cmd);
-	i=0;
-	char ** pipargs = split_pipe_fxn(cmd);
-	char ** args2;
-	if(i>1)
-	while(pipargs[i-1])
-	{
-		printf("%s\n",pipargs[i]);
+			dup2(pd[0], 0);
+			close(pd[1]);
+			i++;
+		}
 		args2 = split_line_fxn(pipargs[i]);
-		int m=0;
-		while(args2[m])
-		{
-			printf("%s\n",args2[m]);
-			m++;
-		}
-		int pd[2];
-        pipe(pd);
+		execvp(args2[0],args2);
+		exit(0);
+	}
+	else
+	{
 
-		int pid = fork();
-		if(pid == 0)
-		{
-			dup2(pd[1],1);
-			execlp(args2[0], args2, NULL);
-            perror("exec");
-            abort();
-		}
-		dup2(pd[0], 0);
-        close(pd[1]);
-        i++;
-    }
-	execlp(args2[0], args2, NULL);
-
-    perror("exec");
-    abort();
-    return 1;
+		do {
+			wpid = waitpid(piid, &status, WUNTRACED);
+		} while (!WIFEXITED(status) && !WIFSIGNALED(status));
+	}
+	return 1;
 }
 
 int execute_func(char **args)
@@ -465,7 +470,7 @@ int execute_func(char **args)
 		return 1;
 	}
 
-	
+
 	for (int i = 0; i < num_builtins(); i++) 
 	{
 		if (strcmp(args[0], builtin_str[i]) == 0) 

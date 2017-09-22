@@ -113,11 +113,11 @@ void prompt()
 		while(args[j])
 		{
 
-	// Used to separate command arguments
-			
+	// Used to separate command argument
 			char **args2 = split_line_fxn(args[j]);
 			j++;
 			k = execute_func(args2);
+			//printf("%d\n",k);
 		}
 	}
 }
