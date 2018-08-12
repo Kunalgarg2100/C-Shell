@@ -23,7 +23,6 @@ int ls(char ** args);
 int pinfo(char ** args);
 int lsl(char ** args);
 int print_prompt();
-int pipe_fxn(char **args);
 
 int quit(char ** args);
 int nightswatch(char ** args);
@@ -33,31 +32,19 @@ int execute_func(char **args);
 int launch_func(char **args);
 void sigh(int signum);
 char **split_cmd_fxn(char *line);
-char **split_pipe_fxn(char *line);
 char **split_line_fxn(char *line);
 char *read_line(void);
 void background_fxn();
 void back_process(int x,char * y);
 void  SIGINT_handler(int sig);
-void  SIGHUP_handler(int signal_num);
+void  SIGQUIT_handler(int signal_num);
 void  SIGTSTP_handler(int signal_num);
-int fg(char **args);
-int bg(char **args);
-int redirect_fxn(char **args);
-
-int kjob(char **args);
-int overkill(char **args);
-int jobs(char **args);
-int set_env(char ** args);
-int unset_env(char ** args);
-
 
 static char perms_buff[30];
-char * cmdexec[100];
+
 char home[1111];
 char previous[1111];
 typedef struct curr_job{
-	int state;
 	int pid;
 	int jobid;
 	char * command;

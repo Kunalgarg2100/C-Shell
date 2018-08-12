@@ -23,12 +23,12 @@ int sigpid;
 int max;
 
 // List of funcyions impemented
-char * builtin_str[] = { "cd","pwd","echo","ls","pinfo","nightswatch" ,"kjob","jobs","fg","overkill","set_env","unset_env","bg"};
+char * builtin_str[] = { "cd","pwd","echo","ls","pinfo","nightswatch" };
 
 
 //It’s an array of function pointers (that take array of strings and return an int). 
 int (*builtin_func[]) (char **) = {
-	&cd,&pwd,&echo,&ls,&pinfo,&nightswatch,&kjob,&jobs,&fg,&overkill,&set_env,&unset_env,&bg
+	&cd,&pwd,&echo,&ls,&pinfo,&nightswatch
 };
 
 // Number of built-in functions i.e no of functions implemented 
@@ -39,10 +39,9 @@ int num_builtins() {
 void  SIGINT_handler(int signal_num)
 {
 	int k=0;
-
 	//printf("%d\n",sigpid );
 	if(sigpid){
-		if(kill(sigpid,SIGINT)) //success 0 is returned
+		if(kill(sigpid,SIGINT))
 		{			
 			//printf("Error:Can't kill the process %s\n", strerror(errno));
 			//fprintf(stderr,"Error:Can't kill the process");
@@ -51,34 +50,26 @@ void  SIGINT_handler(int signal_num)
 		k =1;
 	}
 	if(!k){
-
 		signal(signal_num, SIG_IGN); // The signal is ignored.
 		printf("\n");
 		print_prompt();
 		//printf("form signal\n");
 		fflush(stdout); // Flushes the output
 		signal(signal_num, SIGINT_handler); //Again it checks for signal
-
 	}
 }
 
 /* 
-   Signal  After fork() every child process keeps running same loop as parent, creating another child processes
-   and that's why you end up having a lot of them. The signal is sent to every child process of the current process.
-   When you're using fork, you create a child process that inherits from the main process the SIGINT handler.
-   That's why the message is printed several times. So, we need to exit every child process to avoid this error
-   */
+	Signal  After fork() every child process keeps running same loop as parent, creating another child processes
+ 	and that's why you end up having a lot of them. The signal is sent to every child process of the current process.
+	When you're using fork, you create a child process that inherits from the main process the SIGINT handler.
+ 	That's why the message is printed several times. So, we need to exit every child process to avoid this error
+*/
 
 void SIGTSTP_handler(int signal_num)
 {
 	if(signal_num == SIGTSTP)
 		printf("Ctrl+Z pressed\n");
-	if(sigpid){
-		kill(sigpid,SIGTSTP);
-
-	}
-
-
 }
 
 
@@ -106,10 +97,8 @@ On error, -1 is returned.*/
 		{
 			for(i = 1; i <=max; i++)
 			{
-				if(backgrund_process[i].pid == wpid){
+				if(backgrund_process[i].pid == wpid)
 					printf("[%d]+	Done\t\t\t%s with pid %d\n",backgrund_process[i].jobid,  backgrund_process[i].command, wpid);
-					backgrund_process[i].state = -1;
-				}
 			}
 			prompt();
 		}
@@ -119,11 +108,8 @@ On error, -1 is returned.*/
 		{
 			for(i = 1; i <=max; i++)
 			{
-				if(backgrund_process[i].pid == wpid){
+				if(backgrund_process[i].pid == wpid)
 					printf("[%d]+	Done\t\t\t%s with pid %d\n",backgrund_process[i].jobid,  backgrund_process[i].command , wpid);
-					backgrund_process[i].state = -1;
-
-				}
 			}
 			prompt();
 		}
@@ -148,18 +134,12 @@ void child_process(char **args)
 		}
 		i++;
 	}
-	/*
-	   We didn't use fork() here as, purpose of fork() is to create a new process.
-	   Changing the current directory of the new process won't ever"be inherited back" to its parent.
-	   In pinfo we need the process id of the parent so we don't fork it
-	   */
-
-	/*
-	   setenv(),unsetenv() and putenv() functions should not be forked as l, it won't modify the shell's environment - there's 
-	   no way for a child process to do that.  That's why the shell commands that modify the environment are builtins, and why you need to source 
-	   a script that contains variable settings you want to add to your shell, rather than simply running it.
-	   */
-	if(strcmp(args[0],"cd")== 0 || strcmp(args[0],"pinfo")== 0 || strcmp(args[0],"set_env")== 0  || strcmp(args[0],"unset_env")== 0 || strcmp(args[0],"fg")== 0)
+/*
+ We didn't use fork() here as, purpose of fork() is to create a new process.
+ Changing the current directory of the new process won't ever"be inherited back" to its parent.
+In pinfo we need the process id of the parent so we don't fork it
+*/
+	if(strcmp(args[0],"cd")== 0 || strcmp(args[0],"pinfo")== 0)
 	{
 		for (i = 0; i < num_builtins(); i++) {
 			if (strcmp(args[0], builtin_str[i]) == 0) {
@@ -188,7 +168,7 @@ void child_process(char **args)
 			}
 
 			if(x == 1) // If the process started is a background process then the child process exits
-				exit(0);
+				exit(EXIT_SUCCESS);
 		}
 		else 
 		{
@@ -219,7 +199,6 @@ void back_process(int pid,char * str)
 	backgrund_process[++max].pid = pid;
 	backgrund_process[max].command = str;
 	backgrund_process[max].jobid = max;
-	backgrund_process[max].state = 0;
 	printf("The process %s with pid %d has started in the background\n",str,pid);
 	printf("[%d] %d\n",backgrund_process[max].jobid,pid);
 	return;
@@ -282,42 +261,11 @@ int execute_func(char **args)
 {
 	if (args[0] == NULL) 
 		return 1;
-	int indir = 0;
-	int i=0;
-	int pipedir = 0;
-	while(args[i]!=NULL) //Checking if it is a redirection command
-	{
-		if(strcmp(args[i],"|") == 0)
-			pipedir=1;
-		if((strcmp(args[i],">") == 0) || (strcmp(args[i],"<") == 0) || (strcmp(args[i],">>") == 0) )
-		{
-			indir = 1;
-			
-		}
-		i++;
-	}
-
-	if(pipedir)
-	{
-		//printf("pipefun\n");
-		pipe_fxn(args);
-		//printf("pipefun\n");
-		return 1;
-	}
-
-
-	if(indir)
-	{
-		redirect_fxn(args);
-		//printf("redirection\n");
-		return 1;
-	}
-
 
 	for (int i = 0; i < num_builtins(); i++) 
 	{
 		if (strcmp(args[0], builtin_str[i]) == 0) 
-		{	
+		{
 			child_process(args); //If command is implemented in the C code
 			return 1;
 		}
@@ -325,101 +273,4 @@ int execute_func(char **args)
 			exit(0);
 	}
 	return launch_func(args);
-}
-
-
-int kjob(char **args)
-{
-	if(args[1]==NULL || args[2] ==NULL)
-	{
-		fprintf(stderr, "Usage: kjob <jobid> <signal>\n");
-		return 0;
-
-	}
-
-	int jbid = atoi(args[1]);
-	if(jbid > max)
-	{
-		fprintf(stderr, "No such job ID\n");
-		return 0;
-	}
-
-	int sig=atoi(args[2]);
-	kill(backgrund_process[jbid].pid,sig);
-	backgrund_process[jbid].state=-1;
-	return 1;
-}
-
-
-int fg(char **args)
-{
-
-	if(args[1]==NULL)
-	{
-		fprintf(stderr, "Usage: fg <jobid>\n");
-	}
-	pid_t wpid;
-	int jbid=atoi(args[1]);
-	printf("%s\n",backgrund_process[jbid].command);
-	int status;
-	backgrund_process[jbid].state=1;
-	//kill(backgrund_process[jbid].pid,SIGCONT);
-
-	do {
-		wpid = waitpid(backgrund_process[jbid].pid, &status, WUNTRACED);
-	} while (!WIFEXITED(status) && !WIFSIGNALED(status));  
-
-	return 1;
-}
-
-
-int overkill(char **args)
-{
-	int i=0;
-	for(i=1;i<=max;i++)
-	{
-		if(backgrund_process[i].state==0)
-		{
-			kill(backgrund_process[i].pid,15);
-			backgrund_process[i].state=-1;
-		}
-	}
-	max=0;
-	return 1;
-
-}
-
-int jobs(char **args)
-{
-	int y = backgrund_process[1].state;
-	for(int i=1;i<=max;i++)
-	{
-		if(backgrund_process[i].state==0 || backgrund_process[i].state==1)
-			printf("[%d] Running %s[%d]\n",backgrund_process[i].jobid,backgrund_process[i].command,backgrund_process[i].pid);
-		else if(backgrund_process[i].state ==-1)
-			printf("[%d] Stopped %s[%d]\n",backgrund_process[i].jobid,backgrund_process[i].command,backgrund_process[i].pid);
-
-	}	
-	return 1;
-}
-
-int bg(char **args)
-{
-	char * cmd1, * cmd2 , * cmd3;
-	char ** args1, ** args2;
-	cmd2 = (char *)malloc(1111 * sizeof(char));
-
-	cmd1 = (char *)malloc(1111 * sizeof(char));
-	if(args[1]==NULL)
-	{
-		fprintf(stderr, "Usage: backgroundg <jobid>\n");
-	}
-	pid_t wpid;
-	int jbid=atoi(args[1]);
-	sprintf(cmd1 ,"ps -o stat= %d",backgrund_process[jbid].pid);
-	args1 = split_line_fxn(cmd1);
-	printf("Process Status -- ");
-	fflush(stdout);
-	cmd2 = execute_func(args1);
-	printf("%c\n\n\n",cmd2[0]);
 }
